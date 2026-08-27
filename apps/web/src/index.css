@@ -1,0 +1,133 @@
+@import "@fontsource-variable/noto-sans-thai";
+@import "@fontsource-variable/inter";
+@import "@daypicker/react/style.css";
+@import "tailwindcss";
+@import "@reserveflow/ui/tokens.css";
+@source "../../../packages/ui/src";
+
+@layer base {
+  html {
+    min-width: 20rem;
+    min-height: 100%;
+    background-color: var(--color-bg);
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-width: 20rem;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+}
+
+@layer utilities {
+  /* The Stitch login reference uses Inter. Keep it route-scoped so the rest of the
+     Thai-first product continues to use Noto Sans Thai. */
+  .font-login {
+    font-family: "Inter Variable", Arial, sans-serif;
+  }
+}
+
+.date-picker-dialog .rdp-root {
+  --rdp-accent-color: var(--color-g7);
+  --rdp-accent-background-color: var(--color-g1);
+  --rdp-selected-border: 0;
+  --rdp-today-color: var(--color-g7);
+  --rdp-disabled-opacity: 0.38;
+  margin-inline: auto;
+}
+
+.date-picker-dialog .rdp-months,
+.date-picker-dialog .rdp-month_grid {
+  width: 100%;
+}
+
+.date-picker-dialog .rdp-month_caption {
+  align-items: center;
+  color: var(--color-ink);
+}
+
+.date-picker-dialog .rdp-weekday {
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.date-picker-dialog .rdp-day_button:hover:not(:disabled) {
+  background: var(--color-g1);
+}
+
+.date-picker-dialog .rdp-day_button:focus-visible,
+.date-picker-dialog .rdp-button_next:focus-visible,
+.date-picker-dialog .rdp-button_previous:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-g7) 38%, transparent);
+  outline-offset: 2px;
+}
+
+.date-picker-dialog .rdp-selected .rdp-day_button {
+  border: 0;
+  background: var(--color-g7);
+  color: white;
+}
+
+.date-picker-dialog .rdp-disabled .rdp-day_button {
+  text-decoration: line-through;
+}
+
+.date-picker-dialog .rdp-footer {
+  padding-top: 0.75rem;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (max-width: 22.5rem) {
+  .date-picker-dialog .rdp-root {
+    --rdp-day-height: 36px;
+    --rdp-day-width: 36px;
+    --rdp-day_button-height: 36px;
+    --rdp-day_button-width: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @layer base {
+    a,
+    button,
+    input,
+    select,
+    textarea {
+      transition-duration: 160ms;
+      transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+      transition-timing-function: ease-out;
+    }
+  }
+}
