@@ -1,0 +1,106 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ReserveFlow - QR Check-in</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"inverse-surface": "#2f312d", "inverse-on-surface": "#f1f1eb", "on-tertiary-container": "#7b4a57", "on-tertiary": "#ffffff", "on-primary-fixed": "#1b1d00", "outline-variant": "#c2c8bd", "surface-container-highest": "#e2e3dd", "secondary-fixed": "#ffdad8", "on-secondary-fixed-variant": "#92001c", "on-tertiary-fixed-variant": "#673945", "on-primary": "#ffffff", "surface-dim": "#dadad5", "primary-fixed-dim": "#c7cd5f", "error-container": "#ffdad6", "on-surface": "#1a1c19", tertiary: "#82505d", "surface-tint": "#5e6300", "on-tertiary-fixed": "#340e1b", "primary-container": "#d0d667", "on-secondary-fixed": "#410007", "tertiary-fixed-dim": "#f5b5c4", "surface-container-low": "#f4f4ee", "on-primary-container": "#585c00", "on-secondary-container": "#fffbff", "surface-variant": "#e2e3dd", "on-error-container": "#93000a", "tertiary-fixed": "#ffd9e0", surface: "#f9faf4", "on-surface-variant": "#424940", "tertiary-container": "#ffbecd", "surface-bright": "#f9faf4", secondary: "#b6152b", "on-error": "#ffffff", primary: "#5e6300", "on-primary-fixed-variant": "#474a00", "surface-container": "#eeeee8", background: "#f9faf4", outline: "#72796f", "inverse-primary": "#c7cd5f", "surface-container-high": "#e8e9e3", "secondary-container": "#da3340", "on-background": "#1a1c19", "on-secondary": "#ffffff", "secondary-fixed-dim": "#ffb3b1", error: "#ba1a1a", "primary-fixed": "#e4e978", "surface-container-lowest": "#ffffff", "pastel-blue": "#DCEBFA", "pastel-mint": "#E2F0CB", "pastel-peach": "#FFDAB9"}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}, spacing: {xl: "64px", lg: "40px", md: "24px", "container-max": "1200px", sm: "12px", xs: "4px", base: "8px", gutter: "24px"}, fontFamily: {"body-lg": ["hankenGrotesk", "sans-serif"], "display-lg": ["manrope", "sans-serif"], "body-md": ["hankenGrotesk", "sans-serif"], "headline-sm": ["manrope", "sans-serif"], "headline-md": ["manrope", "sans-serif"], "body-sm": ["hankenGrotesk", "sans-serif"], "label-caps": ["hankenGrotesk", "sans-serif"], headline: ["Manrope"], display: ["Manrope"], body: ["Hanken Grotesk"], label: ["Manrope"]}, fontSize: {"body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}], "display-lg": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}], "headline-md": ["24px", {lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600"}], "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}], "label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600"}]}, boxShadow: {"level-1": "0 4px 20px rgba(38, 50, 56, 0.04)", "level-2": "0 12px 32px rgba(38, 50, 56, 0.08)"}}}};</script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;family=Hanken+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<!-- Valid Upcoming Status: Using Pastel Blue dynamic background -->
+<body class="bg-pastel-blue h-full flex flex-col font-body-md text-on-surface antialiased overflow-hidden">
+<!-- Top Navigation (Mobile Specific - Back / Close action) -->
+<header class="flex justify-between items-center px-4 py-6 z-10 sticky top-0 bg-transparent">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+<div class="font-headline-sm text-headline-sm text-on-surface text-center flex-1 pr-10">
+            Check-in
+        </div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col items-center justify-center px-4 pb-12 z-0 relative">
+<!-- Animated Background Element for Premium Feel -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden opacity-30 flex items-center justify-center">
+<div class="w-96 h-96 bg-white rounded-full blur-[100px] animate-pulse" style="animation-duration: 4s;"></div>
+</div>
+<!-- QR Code Card (Level 1 Elevation) -->
+<div class="bg-white rounded-xl shadow-level-1 p-8 flex flex-col items-center w-full max-w-[320px] relative z-10 border border-outline-variant/30">
+<div class="mb-6 text-center">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2">Alpha Boardroom</h1>
+<p class="font-body-md text-body-md text-on-surface-variant flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">schedule</span>
+                    10:00 AM - 11:30 AM
+                </p>
+</div>
+<!-- QR Code Container -->
+<div class="bg-surface-container-lowest rounded-lg p-4 mb-8 border border-outline-variant/50 shadow-sm relative">
+<!-- Decorative scanning corners -->
+<div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-primary rounded-tl-sm"></div>
+<div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-primary rounded-tr-sm"></div>
+<div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-primary rounded-bl-sm"></div>
+<div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-primary rounded-br-sm"></div>
+<img class="w-48 h-48 object-contain" data-alt="A high-contrast, crisp black and white QR code centered on a clean white background. The QR code design is modern, sharp, and perfectly square, representing a digital access key. It is framed within a subtle, pristine digital interface context without any distractions, well-lit in a minimalist style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDru-oRsOWom2_sPO3ty5BQYhJVm94rFAM9c8Pgr1eEDI4joR5bqZgd_tO56PLFL6t8pzj3a0jvTkNjyhGvxXXeJwaYnelLIBY9qmnx4s-QondgWBTHT6ZNwD-fL3vNPfo7ptirzyr-Vzkg7vlqPoe-Yaqc40tBEKCARfAncXuTFVXhqRZuZwRdJ9kQzdqZJPiW7pII-INleUjoKkBrb0Wx38MxexbEjH4E1CNuCUWVR-qdRN3rUr9L">
+</div>
+<!-- Status Badge -->
+<div class="bg-pastel-blue/50 text-primary-fixed-dim border border-primary/10 rounded-full px-4 py-1.5 font-label-caps text-label-caps uppercase tracking-wider mb-6 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                Ready to Check-in
+            </div>
+<!-- Action Button -->
+<button class="w-full bg-primary text-on-primary rounded-full py-4 font-headline-sm text-body-lg shadow-sm hover:shadow-level-2 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined icon-filled">qr_code_scanner</span>
+                Scan to Check-in
+            </button>
+<!-- Manual Entry Link -->
+<button class="mt-4 text-primary font-body-sm text-body-sm underline-offset-4 hover:underline">
+                Enter Code Manually
+            </button>
+</div>
+</main>
+<script>
+        // Interactive visual feedback for button
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.classList.add('scale-95');
+            }, {passive: true});
+            btn.addEventListener('touchend', function() {
+                this.classList.remove('scale-95');
+            }, {passive: true});
+        });
+    </script>
+</body></html>

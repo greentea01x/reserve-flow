@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="th" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ReserveFlow - Booking Form</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600&amp;family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"on-surface": "#1a1c19", "primary-fixed": "#e4e978", "on-secondary-fixed": "#410007", "tertiary-container": "#ffbecd", "on-background": "#1a1c19", secondary: "#b6152b", "on-primary": "#ffffff", "on-primary-container": "#585c00", "surface-variant": "#e2e3dd", tertiary: "#82505d", "tertiary-fixed-dim": "#f5b5c4", "on-tertiary-container": "#7b4a57", "on-tertiary-fixed-variant": "#673945", "on-primary-fixed": "#1b1d00", "surface-container-high": "#e8e9e3", "surface-container": "#eeeee8", "on-secondary-container": "#fffbff", "on-tertiary-fixed": "#340e1b", surface: "#f9faf4", "surface-container-low": "#f4f4ee", "on-error": "#ffffff", outline: "#72796f", error: "#ba1a1a", "surface-dim": "#dadad5", "secondary-fixed-dim": "#ffb3b1", "inverse-primary": "#c7cd5f", "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#92001c", background: "#f9faf4", "on-error-container": "#93000a", "inverse-surface": "#2f312d", "inverse-on-surface": "#f1f1eb", primary: "#5e6300", "tertiary-fixed": "#ffd9e0", "primary-fixed-dim": "#c7cd5f", "on-surface-variant": "#424940", "on-primary-fixed-variant": "#474a00", "secondary-container": "#da3340", "primary-container": "#d0d667", "surface-container-highest": "#e2e3dd", "surface-bright": "#f9faf4", "outline-variant": "#c2c8bd", "on-secondary": "#ffffff", "error-container": "#ffdad6", "secondary-fixed": "#ffdad8", "surface-tint": "#5e6300", "surface-container-lowest": "#ffffff", rf: {bg: "#F7FAF6", primary: "#4F8F68", pastelGreen: "#DDF3E4", pastelYellow: "#FFF0B8", pastelRed: "#F8D7D4", alertRed: "#C86464", dark: "#18324A", border: "#D9E4DA"}}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}, spacing: {xl: "64px", base: "8px", sm: "12px", "container-max": "1200px", gutter: "24px", md: "24px", xs: "4px", lg: "40px"}, fontFamily: {"body-lg": ["Hanken Grotesk"], "headline-sm": ["Manrope"], "body-md": ["Hanken Grotesk"], "display-lg": ["Manrope"], "headline-md": ["Manrope"], "body-sm": ["Hanken Grotesk"], "label-caps": ["Manrope"], sans: ["Manrope", "sans-serif"], headline: ["Manrope"], display: ["Manrope"], body: ["Hanken Grotesk"], label: ["Manrope"]}, fontSize: {"body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}], "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "display-lg": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "headline-md": ["24px", {lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600"}], "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}], "label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600"}]}}}};</script>
+<style data-purpose="custom-styles">
+    body {
+      background-color: #faf9f5;
+      color: #1a1c1a;
+    }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Custom toggle switch style */
+    .toggle-checkbox:checked {
+      right: 0;
+      border-color: #3d674c;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #3d674c;
+    }
+    .toggle-checkbox:checked + .toggle-label:after {
+      transform: translateX(100%);
+      border-color: white;
+    }
+    .toggle-label {
+      width: 3rem;
+      height: 1.5rem;
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+    .toggle-label:after {
+      content: '';
+      position: absolute;
+      top: 0.125rem;
+      left: 0.125rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.2s ease-in-out;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen flex font-sans bg-background">
+<!-- BEGIN: Sidebar -->
+<nav class="hidden md:flex bg-surface shadow-sm h-screen w-64 fixed left-0 top-0 flex-col py-md px-sm z-50">
+<!-- Header -->
+<div class="px-sm mb-lg">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">ReserveFlow</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Enterprise Booking</p>
+</div>
+<!-- Navigation Links -->
+<ul class="flex-1 flex flex-col gap-xs">
+<li class="">
+<!-- Active State applied to Room Search -->
+<a class="flex items-center gap-md px-sm py-sm rounded-[16px] text-primary font-bold border-r-4 border-primary font-body-md text-body-md hover:bg-surface-container transition-colors duration-200 active:scale-95 bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" data-icon="search" data-weight="fill" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="">ค้นหาห้อง</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-sm py-sm rounded-[16px] text-on-surface-variant font-body-md text-body-md hover:bg-surface-container transition-colors duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+<span class="">การจองของฉัน</span>
+</a>
+</li>
+<li class="">
+</li>
+
+</ul>
+<!-- CTA -->
+<div class="mt-auto px-sm pt-md border-t border-outline-variant/30"><a class="flex items-center gap-md px-sm py-sm rounded-[16px] text-on-surface-variant font-body-md text-body-md hover:bg-surface-container transition-colors duration-200 active:scale-95" href="#"><span class="material-symbols-outlined" data-icon="logout">logout</span><span class="">ออกจากระบบ</span></a></div>
+</nav>
+<!-- Mobile Menu Button (Visible on small screens) -->
+<button class="md:hidden fixed top-4 left-4 z-50 p-2 bg-surface rounded-full shadow-md text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- END: Sidebar -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 md:ml-64 p-lg bg-background overflow-y-auto w-full">
+<div class="max-w-[container-max] mx-auto flex flex-col gap-lg">
+<!-- Top Action Bar -->
+<div class="flex justify-between items-center mt-12 md:mt-0">
+<button class="inline-flex items-center gap-xs px-md py-sm rounded-full bg-surface-container text-on-surface font-label-caps text-label-caps hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                    กลับไปเลือกห้อง
+                </button>
+</div>
+<!-- Page Header -->
+<div class="mb-4">
+<h2 class="text-2xl font-bold text-on-surface mb-1">รายละเอียดการจอง</h2>
+<p class="text-sm text-on-surface-variant">ตรวจสอบข้อมูลก่อนยืนยัน</p>
+</div>
+<!-- Form Content -->
+<div class="flex flex-col lg:flex-row gap-8 w-full">
+<!-- Left Column: Room Summary Card -->
+<div class="lg:w-1/3">
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 shadow-[0_4px_20px_rgba(118,119,116,0.04)]">
+<!-- Badge -->
+<div class="inline-flex items-center gap-1.5 bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-sm font-bold mb-6">
+<i class="fa-solid fa-check text-xs"></i>
+              อนุมัติอัตโนมัติ
+            </div>
+<h3 class="text-xl font-bold text-on-surface mb-6">Horizon Room</h3>
+<!-- Details List -->
+<div class="space-y-4 text-sm">
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-3 border-dashed">
+<span class="text-on-surface-variant">วันที่</span>
+<span class="font-bold text-on-surface">26 ส.ค. 2026</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-3 border-dashed">
+<span class="text-on-surface-variant">เวลา</span>
+<span class="font-bold text-on-surface">14:00–15:00</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-3 border-dashed">
+<span class="text-on-surface-variant">ระยะเวลา</span>
+<span class="font-bold text-on-surface">1 ชั่วโมง</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-3 border-dashed">
+<span class="text-on-surface-variant">ความจุ</span>
+<span class="font-bold text-on-surface">20 คน</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-3 border-dashed">
+<span class="text-on-surface-variant">อุปกรณ์</span>
+<span class="font-bold text-on-surface">Projector, Microphone</span>
+</div>
+</div>
+<!-- Warning Box -->
+<div class="mt-6 bg-primary-container border border-primary-container rounded-2xl p-4 flex items-center justify-center">
+<p class="text-sm text-on-primary-container font-medium text-center">Conflict Check: ตรวจห้องอีกครั้งเมื่อกดยืนยัน</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Booking Form -->
+<div class="lg:w-2/3">
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 shadow-[0_4px_20px_rgba(118,119,116,0.04)]">
+<h3 class="text-xl font-bold text-on-surface mb-6">ข้อมูลการประชุม</h3>
+<form class="space-y-6">
+<!-- Subject Field -->
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2" for="subject">หัวข้อการประชุม *</label>
+<input class="w-full px-4 py-3 rounded-2xl border border-outline-variant/30 focus:ring-primary focus:border-primary outline-none transition-shadow text-on-surface placeholder:text-on-surface-variant/50 bg-surface-container-lowest" id="subject" name="subject" placeholder="ระบุหัวข้อการประชุม" type="text" value="Product Roadmap Review">
+</div>
+<!-- Participants Field -->
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2" for="participants">รหัสพนักงานผู้เข้าร่วม</label>
+<div class="relative flex items-center">
+<i class="fa-solid fa-magnifying-glass absolute left-4 text-on-surface-variant/50"></i>
+<input class="w-full pl-11 pr-4 py-3 rounded-2xl border border-outline-variant/30 focus:ring-primary focus:border-primary outline-none transition-shadow text-on-surface placeholder:text-on-surface-variant/50 bg-surface-container-lowest" id="participants" name="participants" placeholder="ระบุรหัสพนักงานแล้วกด Enter" type="text">
+</div>
+<!-- Chips -->
+<div class="flex flex-wrap gap-2 mt-3"><div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-low text-sm text-on-surface">
+<span class="">EMP-001</span>
+<button class="text-on-surface-variant hover:text-on-surface focus:outline-none" type="button">
+<i class="fa-solid fa-xmark text-xs"></i>
+</button>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant/30 bg-surface-container-low text-sm text-on-surface">
+<span class="">EMP-002</span>
+<button class="text-on-surface-variant hover:text-on-surface focus:outline-none" type="button">
+<i class="fa-solid fa-xmark text-xs"></i>
+</button>
+</div></div>
+</div>
+<!-- Private Meeting Toggle -->
+<div class="flex items-center justify-between border border-outline-variant/30 rounded-2xl p-4 bg-surface-container-lowest">
+<div>
+<div class="font-bold text-on-surface text-sm">Private Meeting</div>
+<div class="text-xs text-on-surface-variant mt-0.5">บุคคลอื่นเห็นเพียง "Busy"</div>
+</div>
+<!-- Custom Toggle implementation -->
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 opacity-0" id="private_meeting" name="private_meeting" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer" for="private_meeting"></label>
+</div>
+</div>
+<!-- Special Requirements Textarea -->
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2" for="requirements">ความต้องการพิเศษ</label>
+<textarea class="w-full px-4 py-3 rounded-2xl border border-outline-variant/30 focus:ring-primary focus:border-primary outline-none transition-shadow resize-y text-on-surface placeholder:text-on-surface-variant/50 bg-surface-container-lowest" id="requirements" name="requirements" placeholder="เช่น เตรียมน้ำดื่ม 10 ที่นั่ง / สาย HDMI เพิ่ม" rows="3"></textarea>
+</div>
+<!-- Footer Actions -->
+<div class="pt-4 border-t border-outline-variant/30 space-y-6 mt-6">
+<!-- Submit Button -->
+<button class="w-full bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-bold py-4 px-6 rounded-full transition-colors flex items-center justify-center gap-2 text-lg shadow-sm" type="button">
+                  ยืนยันการจอง
+                  <i class="fa-solid fa-arrow-right"></i>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- END: Main Content Area -->
+
+
+
+
+
+
+
+
+</body></html>

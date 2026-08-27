@@ -1,0 +1,13 @@
+%% title: วันประชุม — เช็กอินหรือถูกปล่อยห้อง
+%% id: checkin-autorelease
+flowchart LR
+  r["T−15 นาที<br/>sweep ส่ง reminder<br/>ปุ่มเช็กอินเปิด"]
+  s["start_at<br/>เริ่มประชุม"]
+  dl["เส้นตายเช็กอิน<br/>LEAST(end_at,<br/>start_at + 15 นาที)"]
+  ci["CHECKED_IN<br/>เจ้าของ · ผู้เข้าร่วม<br/>ADMIN ถึง end_at"]
+  ar["AUTO_RELEASED<br/>ช่องว่างทันที · นับ no-show<br/>.ics CANCEL ถึงเจ้าของ<br/>และผู้เข้าร่วม"]
+  co["end_at → COMPLETED<br/>sweep · audit อย่างเดียว"]
+
+  r --> s --> dl
+  dl -- "มีคนกด" --> ci --> co
+  dl -- "ไม่มีใครมา" --> ar

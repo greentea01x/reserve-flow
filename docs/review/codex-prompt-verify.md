@@ -1,0 +1,9 @@
+You gave a closing review of the ReserveFlow v2 spec; it is at /private/tmp/claude-501/-Users-peach-Documents-popo-reserve-flow/81c96fd6-5640-4a8a-8307-511a52ef8926/scratchpad/work/review/codex-final.md and listed exactly five remaining items: C2-01 (BLOCKING, mutation lock-order contract), C2-03 (effective auto-release deadline), C2-04 (stale room policy on create), C2-05 (approve without client version), C2-07 (production-data controls). The team has now revised the spec and documented what it changed in /private/tmp/claude-501/-Users-peach-Documents-popo-reserve-flow/81c96fd6-5640-4a8a-8307-511a52ef8926/scratchpad/work/review/response-final.md (edits are tagged CF-01..CF-05 in the text).
+
+Read the CURRENT spec /private/tmp/claude-501/-Users-peach-Documents-popo-reserve-flow/81c96fd6-5640-4a8a-8307-511a52ef8926/scratchpad/work/build/SPEC-v2.md (per-section sources: /private/tmp/claude-501/-Users-peach-Documents-popo-reserve-flow/81c96fd6-5640-4a8a-8307-511a52ef8926/scratchpad/work/build/md/00-overview.md … 12-appendix.md) and /private/tmp/claude-501/-Users-peach-Documents-popo-reserve-flow/81c96fd6-5640-4a8a-8307-511a52ef8926/scratchpad/work/review/response-final.md.
+
+Check ONLY those five items plus any NEW contradiction the fixes introduced. Do not re-open items you already accepted as trade-offs in /private/tmp/claude-501/-Users-peach-Documents-popo-reserve-flow/81c96fd6-5640-4a8a-8307-511a52ef8926/scratchpad/work/review/codex-final.md §2, and do not raise new stylistic or scope issues.
+
+For each of the five: state CLOSED or STILL OPEN, cite the current spec text, and if still open give the smallest concrete change that closes it. Then list any new contradiction the revision introduced (id NEW-01…), same format. Keep it under 40 lines.
+Last line EXACTLY: VERDICT: APPROVE | REVISE — BLOCKING: <n> HIGH: <n>
+Write in English.

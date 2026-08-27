@@ -1,0 +1,33 @@
+%% title: เหตุการณ์ไหนส่งอีเมลถึงใคร
+%% id: notification-fanout
+flowchart LR
+  e1["สร้างคำขอในห้อง MANUAL"]
+  e2["ยืนยันแล้ว — สร้างในห้อง AUTO หรือ ADMIN อนุมัติ"]
+  e3["ถูกปฏิเสธ — ADMIN ปฏิเสธ หรือแพ้ conflict"]
+  e4["ยกเลิก"]
+  e5["เลื่อนเวลา คง CONFIRMED"]
+  e6["reminder T−15 นาที"]
+  e7["ปล่อยห้องอัตโนมัติ"]
+  e8["หมดเวลารออนุมัติ"]
+  e9["บัญชี — เชิญ · admin รีเซ็ต · ลืมรหัสผ่าน"]
+
+  ow(["เจ้าของการจอง"])
+  at(["ผู้เข้าร่วมที่เคยได้คำเชิญ"])
+  ad(["ADMIN ทุกคนที่ ACTIVE"])
+  us(["ผู้ใช้รายบุคคล"])
+
+  e1 -- "booking.requested" --> ow
+  e1 -- "approval.needed" --> ad
+  e2 -- "booking.confirmed · .ics REQUEST" --> ow
+  e2 -- "booking.confirmed · .ics REQUEST" --> at
+  e3 -- "booking.rejected + เหตุผล" --> ow
+  e4 -- "booking.cancelled · .ics CANCEL ถ้าเคยยืนยัน" --> ow
+  e4 -- "booking.cancelled · .ics CANCEL" --> at
+  e5 -- "booking.rescheduled · .ics REQUEST SEQUENCE+1" --> ow
+  e5 -- "booking.rescheduled · .ics REQUEST SEQUENCE+1" --> at
+  e6 -- "booking.reminder + ลิงก์เช็กอิน" --> ow
+  e7 -- "booking.auto_released · .ics CANCEL" --> ow
+  e7 -- "booking.auto_released · .ics CANCEL" --> at
+  e7 -- "booking.auto_released_admin · ไม่มี .ics" --> ad
+  e8 -- "booking.expired" --> ow
+  e9 -- "account.set_password" --> us

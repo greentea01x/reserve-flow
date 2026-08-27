@@ -1,0 +1,23 @@
+%% title: เลื่อนเวลา — ห้อง AUTO กับ MANUAL ต่างกันตรงไหน
+%% id: reschedule-policy
+flowchart TD
+  p["PATCH /bookings/:id พร้อม version"]
+  q0{"แก้อะไร?"}
+  det["แก้รายละเอียดอย่างเดียว<br/>หัวข้อ · ผู้เข้าร่วม · ส่วนตัว · special request<br/>→ สถานะเดิม · version+1 · ไม่ต้องอนุมัติใหม่ (L11)"]
+  q1{"approval_mode ของห้องปลายทาง"}
+  q2{"ใครเป็นคนแก้"}
+  a1["คง CONFIRMED · version+1<br/>UPDATE ใต้ EXCLUDE A<br/>.ics REQUEST SEQUENCE=version ถึงผู้เข้าร่วม (L9)"]
+  m1["คง CONFIRMED และ auto-reject PENDING ที่ทับ<br/>ADMIN เป็นผู้อนุมัติเองอยู่แล้ว (L9)"]
+  m2["กลับเป็น PENDING_APPROVAL · ช่องเดิมว่างทันที<br/>.ics CANCEL ถึงผู้เข้าร่วม + คำขอใหม่ถึง ADMIN (L10)<br/>UI เตือนก่อนกดยืนยัน"]
+  err["409 VERSION_CONFLICT — โหลดใหม่แล้วแก้อีกครั้ง<br/>409 SLOT_UNAVAILABLE — เลือกเวลาหรือห้องอื่น"]
+
+  p --> q0
+  q0 -- "รายละเอียด" --> det
+  q0 -- "เวลา หรือ ห้อง" --> q1
+  q1 -- "AUTO" --> a1
+  q1 -- "MANUAL" --> q2
+  q2 -- "ADMIN" --> m1
+  q2 -- "เจ้าของ" --> m2
+  a1 -.-> err
+  m1 -.-> err
+  m2 -.-> err

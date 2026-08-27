@@ -1,0 +1,17 @@
+%% title: ประชุมส่วนตัว — ใครเห็นอะไร
+%% id: private-masking
+flowchart LR
+  b[("bookings แถวเดียว<br/>is_private = true<br/>Horizon 14:00–15:00")]
+  ser{{"toViewerBooking() ใน API serializer<br/>ชั้นเดียวที่ตัดข้อมูล — ไม่ใช่ CSS<br/>ผลลัพธ์ผ่าน schema allowlist ทุก environment"}}
+  v1["เจ้าของ — FULL<br/>ทุกอย่าง + can.edit / reschedule / cancel"]
+  v2["ผู้เข้าร่วมที่อีเมลตรงกับ user — FULL<br/>เช็กอินแทนได้ แต่แก้ไม่ได้"]
+  v3["ADMIN — FULL<br/>ทุกอย่าง + audit trail"]
+  v4["พนักงานทั่วไป — BUSY<br/>เห็นแค่ ไม่ว่าง + ห้อง + เวลา<br/>/ics และ /attendees ตอบ 403"]
+  v5["เจ้าหน้าที่อาคาร (1.1) — FACILITY<br/>ห้อง เวลา จำนวนคน special_request<br/>ไม่เห็นหัวข้อและชื่อผู้จอง"]
+
+  b --> ser
+  ser --> v1
+  ser --> v2
+  ser --> v3
+  ser --> v4
+  ser --> v5

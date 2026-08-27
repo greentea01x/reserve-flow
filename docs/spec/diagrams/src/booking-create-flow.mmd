@@ -1,0 +1,31 @@
+%% title: เส้นทางของ POST /bookings จนถึง 201 หรือ 409
+%% id: booking-create-flow
+flowchart TD
+  req["POST /api/v1/bookings<br/>header Idempotency-Key"]
+  pre{"ตรวจก่อนเข้าทรานแซกชัน<br/>Idempotency-Key · zod .strict() · can()<br/>เวลาทำการ · วันหยุด · ≥ 60 นาที · กริด 30 นาที · ≤ 30 วัน"}
+  err4["400 / 422 พร้อม code เฉพาะ<br/>ยังไม่แตะฐานข้อมูล"]
+
+  subgraph tx["หนึ่งทรานแซกชัน · ลำดับ lock ตายตัวเหมือนกันทุก writer"]
+    direction TB
+    l1["advisory lock (actor + Idempotency-Key)"]
+    rep{"เคยสร้างด้วยคีย์นี้แล้ว?"}
+    l2["FOR SHARE แถว users ของ actor และ owner เรียงตาม id"]
+    l3["pg_advisory_xact_lock(hashtext(room_id))"]
+    l4["อ่าน rooms FOR SHARE ใต้ lock<br/>approval_mode ที่ผูกพันจริงอยู่ตรงนี้"]
+    ins["INSERT bookings<br/>AUTO → CONFIRMED · MANUAL → PENDING_APPROVAL"]
+    exc{"EXCLUDE A / B ตัดสิน"}
+    side["INSERT audit_logs + แถว outbox ใน notifications<br/>การจองจึง commit ไม่ได้ถ้าไม่มีอีเมลคู่กัน"]
+  end
+
+  rb["ROLLBACK แล้วค่อยหาห้องว่างช่วงเดียวกัน<br/>(ในทรานแซกชันที่ abort query ไม่ได้)"]
+  ok["201 Created + Location<br/>kick notify.send"]
+  rp["200 + Idempotent-Replayed: true<br/>ใบเดิม ไม่มีแถวที่สอง"]
+  c409["409 SLOT_UNAVAILABLE<br/>details.alternatives"]
+
+  req --> pre
+  pre -- "ไม่ผ่าน" --> err4
+  pre -- "ผ่าน" --> l1 --> rep
+  rep -- "ใช่" --> rp
+  rep -- "ไม่" --> l2 --> l3 --> l4 --> ins --> exc
+  exc -- "ผ่าน" --> side --> ok
+  exc -- "23P01 ทับซ้อน" --> rb --> c409

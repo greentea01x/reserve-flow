@@ -1,0 +1,15 @@
+%% title: ชีวิตของอีเมลหนึ่งฉบับใน outbox
+%% id: outbox-delivery
+stateDiagram-v2
+  direction TB
+  state "รอส่ง<br/>PENDING" as P
+  state "ส่งแล้ว<br/>SENT" as S
+  state "ล้มเหลวถาวร<br/>FAILED" as F
+  state "ข้าม<br/>SKIPPED" as K
+
+  [*] --> P: เขียนในทรานแซกชันของ event<br/>UNIQUE dedupe → enqueue ซ้ำเป็น no-op
+  P --> S: notify.send ส่งผ่าน SMTP สำเร็จ<br/>เก็บ Message-ID + sent_at
+  P --> P: ล้มเหลว → attempts+1<br/>เลื่อน next_attempt_at แบบ backoff
+  P --> F: ครบ 8 ครั้ง → dead-letter<br/>ขึ้นรายการหน้า admin + Sentry
+  P --> K: ถูกแทนที่ก่อนส่ง<br/>เช่น ออก token ใหม่
+  F --> P: ADMIN กด retry

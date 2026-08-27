@@ -1,0 +1,22 @@
+%% title: สองคนยืนยันช่องเวลาเดียวกัน (Concurrency)
+%% id: concurrency-sequence
+sequenceDiagram
+  autonumber
+  participant A as พนักงาน ก
+  participant B as พนักงาน ข
+  participant API as apps/api<br/>POST /bookings
+  participant PG as PostgreSQL<br/>bookings + EXCLUDE A
+
+  A->>API: Horizon 13:00–14:00<br/>Idempotency-Key KA
+  B->>API: Horizon 13:00–14:00<br/>Idempotency-Key KB
+  Note over API: นโยบายผ่านทั้งคู่<br/>หน้าจอไม่ใช่ผู้ตัดสิน
+  API->>PG: [ก] BEGIN · idempotency → users<br/>→ advisory lock ห้อง
+  API->>PG: [ข] BEGIN · ขอ lock ห้องเดียวกัน → รอคิว
+  API->>PG: [ก] INSERT CONFIRMED [13:00,14:00)<br/>+ audit + outbox
+  PG-->>API: [ก] OK → COMMIT · ปล่อย lock
+  API-->>A: 201 Created · CONFIRMED
+  Note over PG: [ข] ได้ lock ต่อ<br/>แล้วเห็นแถวของ ก
+  API->>PG: [ข] INSERT CONFIRMED [13:00,14:00)
+  PG-->>API: [ข] 23P01<br/>bookings_no_overlap_confirmed
+  API->>PG: [ข] ROLLBACK แล้วหาห้องว่างช่วงเดียวกัน
+  API-->>B: 409 SLOT_UNAVAILABLE<br/>alternatives: Grove

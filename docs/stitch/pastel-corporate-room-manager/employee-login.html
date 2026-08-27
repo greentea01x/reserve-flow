@@ -1,0 +1,122 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Employee Login - VenueFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"on-background": "#1a1c19", "surface-container": "#eeeee8", "on-error-container": "#93000a", "surface-container-low": "#f4f4ee", "on-secondary": "#ffffff", "on-secondary-container": "#fffbff", "tertiary-fixed": "#ffd9e0", primary: "#5e6300", "tertiary-fixed-dim": "#f5b5c4", "tertiary-container": "#ffbecd", "on-error": "#ffffff", "inverse-on-surface": "#f1f1eb", "surface-dim": "#dadad5", "surface-tint": "#5e6300", error: "#ba1a1a", "secondary-fixed-dim": "#ffb3b1", secondary: "#b6152b", "surface-bright": "#f9faf4", "on-primary-container": "#585c00", surface: "#f9faf4", "on-tertiary": "#ffffff", "inverse-primary": "#c7cd5f", "on-primary-fixed": "#1b1d00", "on-tertiary-fixed-variant": "#673945", "on-surface": "#1a1c19", "error-container": "#ffdad6", "surface-variant": "#e2e3dd", "inverse-surface": "#2f312d", tertiary: "#82505d", "on-primary-fixed-variant": "#474a00", "surface-container-high": "#e8e9e3", "surface-container-lowest": "#ffffff", "on-secondary-fixed-variant": "#92001c", "primary-fixed-dim": "#c7cd5f", "surface-container-highest": "#e2e3dd", "secondary-fixed": "#ffdad8", "on-tertiary-container": "#7b4a57", outline: "#72796f", "outline-variant": "#c2c8bd", "secondary-container": "#da3340", "primary-fixed": "#e4e978", "on-surface-variant": "#424940", "on-primary": "#ffffff", "on-secondary-fixed": "#410007", "primary-container": "#d0d667", "on-tertiary-fixed": "#340e1b", background: "#f9faf4"}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}, spacing: {sm: "12px", lg: "40px", md: "24px", xs: "4px", base: "8px", "container-max": "1200px", xl: "64px", gutter: "24px"}, fontFamily: {"display-lg": ["Manrope"], "body-md": ["Hanken Grotesk"], "headline-md": ["Manrope"], "body-lg": ["Hanken Grotesk"], "headline-sm": ["Manrope"], "label-caps": ["Manrope"], "body-sm": ["Hanken Grotesk"], headline: ["Manrope"], display: ["Manrope"], body: ["Hanken Grotesk"], label: ["Manrope"]}, fontSize: {"display-lg": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-md": ["24px", {lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600"}], "body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}], "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}], "label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600"}], "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}]}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md antialiased overflow-hidden flex">
+<!-- Suppressed navigation shell because page intent is Linear/Transactional (Login) -->
+<main class="w-full flex h-screen">
+<!-- Left Column: Branding (Hidden on mobile) -->
+<div class="hidden md:flex flex-1 flex-col justify-center px-lg bg-surface-container relative overflow-hidden">
+<!-- Decorative Background Elements -->
+<div class="absolute -top-32 -left-32 w-[600px] h-[600px] bg-primary-container rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+<div class="absolute -bottom-48 -right-48 w-[800px] h-[800px] bg-secondary-container rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+<div class="relative z-10 max-w-md mx-auto text-center md:text-left">
+<div class="mb-lg flex items-center justify-center md:justify-start gap-sm">
+<span class="material-symbols-outlined text-primary text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">corporate_fare</span>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">VenueFlow</h1>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md">
+                    บริษัทอุ๊ยรวยไม่จำกัด
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-sm">
+                    จัดการการจองห้องประชุมได้ง่าย เป็นระบบ&nbsp;</p><div class="">และตรวจสอบได้
+                </div><p></p>
+</div>
+<!-- Abstract Graphic / Image Placeholder -->
+<div class="relative z-10 mt-xl w-full max-w-lg mx-auto aspect-video rounded-lg overflow-hidden shadow-sm border border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="A clean, abstract 3D render of a corporate meeting room in a light mode aesthetic. Soft sage and pastel mint colors dominate the scene with smooth, diffused lighting. The image conveys a sense of professional organization, calm efficiency, and premium minimalism, aligning with modern enterprise workspace design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeOe2n-0rJD8dktywNgtAAih5GfkF5FgWlv4xEKEFBnAs8MYKEhf2AOZqlRVopVswvBtCA2CT6jfrEOevVfd1tkOJJ0o1uUTWij0HEFVzjlTRKg-tTvndeXF7X_YPdPiTqVnoNWXjHIkdTfCKw61SYE_M36IkbTslHNdkAAwOc2tDcGLRWK7Zm5ste-DzEAyXYopz61O2WnDlRsVHhsIVOl-2Dm13QHZV-906PSAbkTHSnonZxPIg4">
+</div>
+</div>
+<!-- Right Column: Login Form -->
+<div class="flex-1 flex flex-col justify-center px-sm md:px-lg bg-surface z-10 relative">
+<div class="absolute inset-0 pointer-events-none bg-gradient-to-br from-surface to-surface-container-low opacity-50"></div>
+<div class="w-full max-w-md mx-auto relative z-10">
+<div class="text-center mb-lg md:hidden">
+<span class="material-symbols-outlined text-primary text-4xl mb-sm" data-weight="fill" style="font-variation-settings: 'FILL' 1;">corporate_fare</span>
+<h1 class="font-headline-md text-headline-md text-primary">VenueFlow</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">บริษัทอุ๊ยรวยไม่จำกัด</p>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-lg shadow-[0_4px_20px_rgba(118,119,116,0.04)] border border-outline-variant/20">
+<div class="mb-lg text-center md:text-left">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Employee Login</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">เข้าสู่ระบบ VenueFlow สำหรับพนักงาน</p>
+</div>
+<form action="#" class="space-y-md" method="POST">
+<!-- Employee ID -->
+<div class="space-y-xs">
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase" for="employee_id">
+                                Employee ID (รหัสพนักงาน)
+                            </label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">badge</span>
+</div>
+<input class="block w-full pl-xl pr-sm py-sm font-body-md text-body-md bg-surface text-on-surface border border-outline-variant rounded-DEFAULT focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none" id="employee_id" name="employee_id" placeholder="Enter your ID" required="" type="text">
+</div>
+</div>
+<!-- Mobile Number -->
+<div class="space-y-xs">
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase" for="mobile_number">
+                                Mobile Number (เบอร์โทรศัพท์มือถือ)
+                            </label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">phone_iphone</span>
+</div>
+<input class="block w-full pl-xl pr-sm py-sm font-body-md text-body-md bg-surface text-on-surface border border-outline-variant rounded-DEFAULT focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none" id="mobile_number" name="mobile_number" placeholder="Enter your mobile number" required="" type="tel">
+</div>
+</div>
+<!-- Password -->
+<div class="space-y-xs">
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase" for="password">
+                                Password (รหัสผ่าน)
+                            </label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<input class="block w-full pl-xl pr-xl py-sm font-body-md text-body-md bg-surface text-on-surface border border-outline-variant rounded-DEFAULT focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none" id="password" name="password" placeholder="Enter your password" required="" type="password">
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-sm flex items-center text-outline hover:text-on-surface-variant transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember Me & Forgot Password -->
+<div class="flex items-center justify-between mt-sm">
+<div class="flex items-center">
+<input class="h-4 w-4 text-primary focus:ring-primary border-outline-variant rounded-sm cursor-pointer accent-primary bg-surface" id="remember-me" name="remember-me" type="checkbox">
+<label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant cursor-pointer" for="remember-me">
+                                    Remember me
+                                </label>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-sm">
+<button class="w-full flex justify-center py-sm px-md border border-transparent rounded-full font-body-md text-body-md font-semibold text-on-primary bg-primary hover:bg-on-primary-fixed-variant focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors shadow-sm" type="submit">
+                                เข้าสู่ระบบ
+                            </button>
+</div>
+</form>
+<!-- Sign Up Link -->
+<div class="mt-lg text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant"><span style="caret-color: rgb(113, 129, 142); color: rgb(113, 129, 142); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans Thai&quot;, Tahoma, Arial, sans-serif; font-size: 11px; background-color: rgba(255, 255, 255, 0.85);">ยังไม่มีบัญชี? ติดต่อ Admin เพื่อสร้างบัญชี (ไม่มีการลงทะเบียนเอง)</span><br></p>
+</div>
+</div>
+<!-- Footer / Help -->
+<div class="mt-lg text-center md:text-left flex justify-center md:justify-between items-center px-sm">
+</div>
+</div>
+</div>
+</main>
+</body></html>

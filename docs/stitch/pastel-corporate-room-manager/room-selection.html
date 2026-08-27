@@ -1,0 +1,186 @@
+<!DOCTYPE html><html class="light" lang="en" style="width: 1280px; height: 729px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Room Selection - VenueFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600&amp;family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"outline-variant": "#c2c8bd", "surface-container-lowest": "#ffffff", "on-surface": "#1a1c19", "tertiary-fixed": "#ffd9e0", "tertiary-container": "#ffbecd", "surface-container": "#eeeee8", "on-primary-fixed-variant": "#474a00", "inverse-surface": "#2f312d", "surface-tint": "#5e6300", "secondary-fixed": "#ffdad8", "on-tertiary-fixed": "#340e1b", "tertiary-fixed-dim": "#f5b5c4", "on-secondary-fixed-variant": "#92001c", "on-primary": "#ffffff", "on-error": "#ffffff", "surface-container-low": "#f4f4ee", "on-tertiary-container": "#7b4a57", "secondary-fixed-dim": "#ffb3b1", primary: "#5e6300", "on-secondary-fixed": "#410007", tertiary: "#82505d", "on-primary-fixed": "#1b1d00", "secondary-container": "#da3340", "inverse-primary": "#c7cd5f", "primary-fixed-dim": "#c7cd5f", "on-background": "#1a1c19", "on-secondary-container": "#fffbff", "primary-container": "#d0d667", background: "#f9faf4", "on-surface-variant": "#424940", "surface-dim": "#dadad5", "surface-container-highest": "#e2e3dd", "error-container": "#ffdad6", error: "#ba1a1a", "on-tertiary": "#ffffff", "on-error-container": "#93000a", "surface-variant": "#e2e3dd", "surface-bright": "#f9faf4", "surface-container-high": "#e8e9e3", "primary-fixed": "#e4e978", "inverse-on-surface": "#f1f1eb", surface: "#f9faf4", "on-primary-container": "#585c00", "on-secondary": "#ffffff", outline: "#72796f", "on-tertiary-fixed-variant": "#673945", secondary: "#b6152b"}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}, spacing: {xl: "64px", md: "24px", gutter: "24px", "container-max": "1200px", lg: "40px", sm: "12px", xs: "4px", base: "8px"}, fontFamily: {"label-caps": ["Manrope"], "display-lg": ["Manrope"], "body-md": ["Hanken Grotesk"], "headline-md": ["Manrope"], "body-lg": ["Hanken Grotesk"], "headline-sm": ["Manrope"], "body-sm": ["Hanken Grotesk"], headline: ["Manrope"], display: ["Manrope"], body: ["Hanken Grotesk"], label: ["Manrope"]}, fontSize: {"label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600"}], "display-lg": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-md": ["24px", {lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600"}], "body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}], "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}], "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}]}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (from JSON) -->
+<nav class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface shadow-sm py-md px-sm z-40">
+<div class="mb-lg px-sm">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">ReserveFlow</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Enterprise Booking</p>
+</div>
+<ul class="flex flex-col gap-sm flex-grow"><li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-primary font-bold border-r-4 border-primary bg-surface-container-low transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-caps text-label-caps">ค้นหาห้อง</span>
+</a>
+</li><li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="font-label-caps text-label-caps">การจองของฉัน</span>
+</a>
+</li></ul>
+<div class="mt-auto px-sm mb-sm"><div class="flex flex-col gap-xs">
+
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-caps text-label-caps">ออกจากระบบ</span>
+</a>
+</div></div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 w-full max-w-container-max mx-auto p-4 md:p-lg">
+<!-- Header -->
+<header class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-2">Available Rooms</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Select a space that meets your team's requirements. These rooms are currently available for immediate booking.</p>
+</div>
+<div class="flex items-center gap-sm">
+<span class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-full text-on-surface-variant font-label-caps text-label-caps">
+<span class="material-symbols-outlined" style="font-size: 16px;">filter_list</span>
+                    Filters Active
+                </span>
+</div>
+</header>
+<!-- Room Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- Room 1: Horizon Room -->
+<article class="bg-surface-container-lowest rounded-[32px] overflow-hidden shadow-[0_4px_20px_rgba(118,119,116,0.04)] border border-outline-variant/30 flex flex-col group relative">
+<!-- Pastel Color Bar Indicator -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary-fixed/50 z-10"></div>
+<!-- Image Container -->
+<div class="h-48 relative overflow-hidden bg-surface-container">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A modern, high-end corporate boardroom viewed from a slightly elevated angle. The room features a large, sleek wooden conference table surrounded by ergonomic black leather chairs. Floor-to-ceiling windows on one side let in ample soft, natural daylight, creating a bright, minimalist aesthetic. A large presentation screen is mounted on the far wall. The color palette emphasizes clean whites, soft grays, and subtle pastel blue accents in the decor to maintain a calm, professional atmosphere." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAmBZ2ErtigE9-MlIy-qxK4kLC0cj8cX6_nM0RWAXvSio0Zmw-0AuUpEM8TA-cH9qS31nL53ip9WJY6RaWuNHBC3hqxOsbCnMXrd8btiibmL_pyqQCssDvE2QG0jqleAOTMbaOWus_MamGyhnh2f3bab033qOU8AQaOmVeGa04_DjnIF5ZTCYC1kM2ahadyfFIymXQMBI_KKpZ37ljglDGh_YaF1dH5po9-t3DizVQUD2EGuF-fl_7J')"></div>
+<div class="absolute top-sm right-sm bg-surface-container-lowest/90 backdrop-blur-sm px-sm py-xs rounded-full flex items-center gap-xs shadow-sm">
+<div class="w-2 h-2 rounded-full bg-[#5B7F65]"></div>
+<span class="font-label-caps text-label-caps text-on-surface">Available Now</span>
+</div>
+</div>
+<!-- Content -->
+<div class="p-md flex flex-col flex-grow">
+<div class="mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Horizon Room</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Executive Boardroom · 4th Floor</p>
+</div>
+<!-- Amenities/Specs -->
+<div class="flex flex-wrap gap-sm mb-lg">
+<div class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">group</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Capacity: 20</span>
+</div>
+<div class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">videocam</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Projector: 1</span>
+</div>
+</div>
+<!-- Action -->
+<div class="mt-auto pt-md border-t border-outline-variant/20">
+<button class="w-full bg-primary text-on-primary font-label-caps text-label-caps py-sm rounded-full hover:bg-on-primary-fixed-variant transition-colors duration-200 active:scale-95 flex items-center justify-center gap-xs">
+                            Select Room
+                            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Room 2: Summit Room -->
+<article class="bg-surface-container-lowest rounded-[32px] overflow-hidden shadow-[0_4px_20px_rgba(118,119,116,0.04)] border border-outline-variant/30 flex flex-col group relative">
+<!-- Pastel Color Bar Indicator (Lavender proxy using tertiary) -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-fixed-dim/50 z-10"></div>
+<!-- Image Container -->
+<div class="h-48 relative overflow-hidden bg-surface-container">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A sleek, futuristic meeting space with curved glass walls and minimalist furniture. The room features a modular white conference table and transparent acrylic chairs. Soft, diffused lighting creates an even, shadowless environment, characteristic of a premium, clean light-mode aesthetic. Subtle pastel lavender accents are visible in the acoustic wall panels. The mood is highly focused, modern, and slightly technological." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQQTu7pg2BEqkwu2CeO2LWAgNqjGg6jKWll_siRE9sHAtmXcwJXOSi31u1iyXKThbiVaf3X4YejVxXICDDgmE8zZoN8u0dolYQpenKt6DQADoIAMVJgauXg7wMFV8Qk4--5V68u6H3bcu0qrv4XxCbq80xOOsDK_sLFzU419YC_NKDlv69MnudC6V776mHnhKwbzvfYvR_p9evPq03E2CZV2Pd9xJfT03g7em5Qse-B_1NDcDh5mgW')"></div>
+<div class="absolute top-sm right-sm bg-surface-container-lowest/90 backdrop-blur-sm px-sm py-xs rounded-full flex items-center gap-xs shadow-sm">
+<div class="w-2 h-2 rounded-full bg-[#5B7F65]"></div>
+<span class="font-label-caps text-label-caps text-on-surface">Available Now</span>
+</div>
+</div>
+<!-- Content -->
+<div class="p-md flex flex-col flex-grow">
+<div class="mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Summit Room</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Creative Space · 5th Floor</p>
+</div>
+<!-- Amenities/Specs -->
+<div class="flex flex-wrap gap-sm mb-lg">
+<div class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">group</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Capacity: 20</span>
+</div>
+<div class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">videocam</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Projector: 1</span>
+</div>
+</div>
+<!-- Action -->
+<div class="mt-auto pt-md border-t border-outline-variant/20">
+<button class="w-full bg-primary text-on-primary font-label-caps text-label-caps py-sm rounded-full hover:bg-on-primary-fixed-variant transition-colors duration-200 active:scale-95 flex items-center justify-center gap-xs">
+                            Select Room
+                            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Room 3: Grove Room -->
+<article class="bg-surface-container-lowest rounded-[32px] overflow-hidden shadow-[0_4px_20px_rgba(118,119,116,0.04)] border border-outline-variant/30 flex flex-col group relative">
+<!-- Pastel Color Bar Indicator -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-container/70 z-10"></div>
+<!-- Image Container -->
+<div class="h-48 relative overflow-hidden bg-surface-container">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A tranquil, glass-walled meeting room overlooking a dense indoor corporate garden. The room features a light oak conference table and upholstered sage green chairs. Abundant natural light filters through the foliage, casting soft patterns on the floor. The overall aesthetic is clean, biophilic, and modern, adhering to a premium minimalist corporate style with soft pastel mint undertones. The atmosphere is calm and refreshing." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCmisyBj7suXLTKS5anyEuLWSeVQsoNOMbuOEkOcnmlgUjbmAazfeHc-5X8NYOcNL6z47-dZyTVnTt0GyWe8UwXxUCaT3H3teFbtDCvFmNZJrqJqDp4Gbhz3MBqzUldvb9oGG-GWuptD1YdBRSyfFBZvgugwn6KOZRbXoHyy3blVMGmqVwgooFrgeXZEE4w6cxiBoB4z-_tfUpissbcyUKn90n13iPisSDIWZWhBlF-fWKrQKVuiZkh')"></div>
+<div class="absolute top-sm right-sm bg-surface-container-lowest/90 backdrop-blur-sm px-sm py-xs rounded-full flex items-center gap-xs shadow-sm">
+<div class="w-2 h-2 rounded-full bg-[#5B7F65]"></div>
+<span class="font-label-caps text-label-caps text-on-surface">Available Now</span>
+</div>
+</div>
+<!-- Content -->
+<div class="p-md flex flex-col flex-grow">
+<div class="mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Grove Room</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Garden Wing · 2nd Floor</p>
+</div>
+<!-- Amenities/Specs -->
+<div class="flex flex-wrap gap-sm mb-lg">
+<div class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">group</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Capacity: 20</span>
+</div>
+<div class="flex items-center gap-xs px-sm py-xs bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">videocam</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Projector: 1</span>
+</div>
+</div>
+<!-- Action -->
+<div class="mt-auto pt-md border-t border-outline-variant/20">
+<button class="w-full bg-primary text-on-primary font-label-caps text-label-caps py-sm rounded-full hover:bg-on-primary-fixed-variant transition-colors duration-200 active:scale-95 flex items-center justify-center gap-xs">
+                            Select Room
+                            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</main>
+
+
+
+
+
+
+
+
+</body></html>

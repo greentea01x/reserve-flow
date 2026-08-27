@@ -1,0 +1,30 @@
+%% title: วงจรสถานะการจอง (Booking status lifecycle)
+%% id: booking-lifecycle
+stateDiagram-v2
+  direction TB
+  state "รออนุมัติ<br/>PENDING_APPROVAL" as PEN
+  state "ยืนยันแล้ว<br/>CONFIRMED" as CON
+  state "เช็กอินแล้ว<br/>CHECKED_IN" as CHK
+  state "เสร็จสิ้น<br/>COMPLETED" as COM
+  state "ถูกปฏิเสธ<br/>REJECTED" as REJ
+  state "ยกเลิกแล้ว<br/>CANCELLED" as CAN
+  state "ปล่อยอัตโนมัติ<br/>AUTO_RELEASED" as AUT
+  state "หมดเวลารออนุมัติ<br/>EXPIRED" as EXP
+
+  [*] --> CON: ห้อง AUTO (L1)
+  [*] --> PEN: ห้อง MANUAL (L2)
+
+  PEN --> CON: ADMIN อนุมัติ (L3)
+  PEN --> REJ: ADMIN ปฏิเสธ (L4a)<br/>แพ้ conflict (L4b)
+  PEN --> EXP: sweep · start_at (L5)
+  PEN --> CAN: ยกเลิก (L6)
+
+  CON --> CON: เลื่อน · ห้อง AUTO (L9)
+  CON --> PEN: เจ้าของเลื่อน<br/>ห้อง MANUAL (L10)
+  CON --> CHK: เช็กอิน (L12)
+  CON --> AUT: sweep · ไม่มีใครมา (L13)
+  CON --> CAN: ยกเลิก (L8)
+  CON --> COM: sweep · end_at (L14)
+
+  CHK --> COM: sweep · end_at (L14)
+  CHK --> CAN: ADMIN ยกเลิก (L8)

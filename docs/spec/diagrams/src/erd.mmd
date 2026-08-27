@@ -1,0 +1,35 @@
+%% title: ตารางแกนกลางของการจอง (Core tables)
+%% id: erd
+erDiagram
+  departments ||--o{ users : "8 ทีม"
+  users ||--o{ bookings : "owner_id · created_by"
+  rooms ||--o{ bookings : "room_id"
+  bookings ||--o{ booking_attendees : "ผู้เข้าร่วมเก็บเป็นอีเมล"
+  bookings ||--o{ notifications : "outbox อีเมล + .ics"
+
+  rooms {
+    uuid id PK
+    text code "horizon · summit · grove"
+    integer capacity
+    text approval_mode "AUTO หรือ MANUAL"
+    boolean active
+  }
+  users {
+    uuid id PK
+    text employee_code UK "ใช้ login ได้"
+    citext email UK
+    text role "EMPLOYEE · ADMIN"
+    text status "INVITED · ACTIVE · DISABLED"
+  }
+  bookings {
+    uuid id PK
+    uuid room_id FK
+    uuid owner_id FK
+    timestamptz start_at
+    timestamptz end_at
+    tstzrange slot "generated · half-open [start,end)"
+    text status "8 ค่าใน lifecycle"
+    text approval_mode "snapshot ตอนสร้างหรือเลื่อนล่าสุด"
+    integer version "optimistic lock + SEQUENCE ของ .ics"
+    text idempotency_key "UNIQUE คู่กับ created_by"
+  }
