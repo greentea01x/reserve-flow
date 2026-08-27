@@ -1,0 +1,15 @@
+@import "@fontsource-variable/noto-sans-thai";
+@import "tailwindcss";
+@import "@reserveflow/ui/tokens.css";
+@source "../../../packages/ui/src";
+
+@layer base {
+  body {
+    min-width: 20rem;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    line-height: 1.6;
+  }
+}
