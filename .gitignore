@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.turbo/
+.env
+.env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+blob-report/
+*.local
+.DS_Store
+.vercel
+__pycache__/

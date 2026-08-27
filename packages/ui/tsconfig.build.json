@@ -1,0 +1,11 @@
+{
+  "extends": "../config/tsconfig.react.json",
+  "compilerOptions": {
+    "customConditions": [],
+    "incremental": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

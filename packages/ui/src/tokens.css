@@ -1,0 +1,76 @@
+@theme {
+  /* Stitch-derived, AA-corrected palette — tokens only, no raw hex in components. */
+  --color-ink: #1a1c19;
+  --color-ink2: #424940;
+  --color-muted: #596156;
+  --color-bg: #f9faf4;
+  --color-line: #d9ded4;
+
+  /* Neutral surfaces. */
+  --color-surface: #ffffff;
+  --color-surface-soft: #f4f4ee;
+  --color-surface-strong: #eeeee8;
+  --color-n0: #f4f4ee;
+  --color-n1: #e2e3dd;
+
+  /* Olive primary family. */
+  --color-g0: #f6f7e8;
+  --color-g1: #eef0cf;
+  --color-g2: #d0d667;
+  --color-g7: #5e6300;
+  --color-accent: #d0d667;
+  --color-accent-soft: #e4e978;
+  --color-olive: #5e6300;
+  --color-olive-dark: #474a00;
+
+  /* Warm supporting family. */
+  --color-y0: #fffaf0;
+  --color-y1: #f8e9b9;
+  --color-y2: #edcf83;
+  --color-y7: #72530c;
+
+  /* Blush and destructive states. */
+  --color-r0: #fff5f3;
+  --color-r1: #ffdad6;
+  --color-r2: #f2b8b5;
+  --color-r7: #93000a;
+  --color-blush: #f8d7d4;
+  --color-blush-soft: #fff0ee;
+
+  /* Informational accents used by check-in and quiet guidance panels. */
+  --color-info: #315f87;
+  --color-info-soft: #dcebfa;
+  --color-mint-soft: #e2f0cb;
+  --color-peach-soft: #ffdab9;
+
+  --color-border-input: #7b8278;
+
+  /* legacy aliases — status-badge classes depend on these names */
+  --color-status-available: #eef0cf;
+  --color-status-available-text: #5e6300;
+  --color-status-pending: #f8e9b9;
+  --color-status-pending-text: #72530c;
+  --color-status-busy: #ffdad6;
+  --color-status-busy-text: #93000a;
+  --color-border: #7b8278;
+
+  --shadow-card: 0 0.25rem 1.25rem rgb(70 74 54 / 7%);
+  --shadow-soft: 0 1rem 3rem rgb(70 74 54 / 10%);
+  --radius-control: 1rem;
+  --radius-card: 1.5rem;
+
+  --font-sans: "Noto Sans Thai Variable", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --focus-ring-width: 0.125rem;
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  letter-spacing: normal;
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-g7);
+  outline-offset: 0.1875rem;
+}

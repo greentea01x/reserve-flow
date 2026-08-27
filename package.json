@@ -1,0 +1,30 @@
+{
+  "name": "reserveflow",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "build:vercel": "turbo run build --filter=@reserveflow/web --filter=@reserveflow/admin && rm -rf apps/web/dist/admin && cp -r apps/admin/dist apps/web/dist/admin",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @reserveflow/api exec drizzle-kit generate",
+    "db:migrate": "pnpm --filter @reserveflow/api exec drizzle-kit migrate",
+    "db:initialize": "pnpm --filter @reserveflow/api db:initialize",
+    "db:seed:demo": "pnpm --filter @reserveflow/api db:seed:demo",
+    "db:studio": "pnpm --filter @reserveflow/api exec drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.10",
+    "@types/node": "26.2.0",
+    "turbo": "2.10.11",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
+  }
+}
