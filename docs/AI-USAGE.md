@@ -38,7 +38,10 @@ conversation updates its existing entry instead of creating duplicates.
   buildable commits, then requested a deep legacy-identity audit before pushing
   `main` to `https://github.com/greentea01x/reserve-flow.git`. After HTTPS
   credentials were unavailable, the user configured GitHub SSH access and
-  requested another push attempt.
+  requested another push attempt. The same conversation then asked why active
+  Vercel deployment instructions remained, clarified that the employee site,
+  admin site, and API all deploy only on Fly.io, and supplied
+  `https://reserveflow-api.fly.dev` as the canonical production origin.
 - Decisions and actions:
   - Treated the supplied local directory as the canonical source after GitHub
     authentication prevented cloning the linked repository.
@@ -62,10 +65,27 @@ conversation updates its existing entry instead of creating duplicates.
     after GitHub identified the new SSH key as `greentea01x`, changed `origin`
     to `git@github.com:greentea01x/reserve-flow.git` and performed a normal
     first push of `main`.
-- Code/documentation changes: Copied the supplied project without changing its
-  application source, dependencies, or configuration. Added this required
-  session entry to `docs/AI-USAGE.md`; `CHANGELOG.md` was not changed because
-  there was no product-facing change relative to the supplied source.
+  - Confirmed the imported hybrid configuration was not a runtime requirement:
+    the existing Docker image already bundles both SPA builds and Hono already
+    serves employee `/`, admin `/admin/`, and API `/api/` routes.
+  - Consolidated the production definition on one always-on Fly app at the
+    user-supplied canonical origin. Removed the split-platform configuration and
+    build script, made the deploy workflow verify all three route families, and
+    rewrote the production runbook and active architecture/operations sources.
+  - Preserved the superseded hybrid decision as explicitly historical D-31 and
+    added D-33 as the current Fly-only decision instead of rewriting decision
+    history. Archived research/review material and prior disclosure entries
+    were likewise left factual and append-only.
+  - Corrected two invalid documentation-builder package pins discovered during
+    regeneration, ignored the documented local virtual environment, and rebuilt
+    the published HTML and three affected SVG diagrams from canonical sources.
+- Code/documentation changes: Imported the supplied project unchanged for the
+  fresh repository, then updated `.env.example`, `.github/workflows/deploy.yml`,
+  `.gitignore`, `CHANGELOG.md`, `README.md`, `package.json`, `fly.toml`,
+  `fly.staging.toml`, `infra/README.md`, `apps/api/Dockerfile`, comments in
+  `apps/api/src/{app.ts,env.ts}`, `docs/DEPLOY.md`, canonical files under
+  `docs/spec/`, generated `docs/ReserveFlow_Spec*.html`, and this disclosure.
+  Deleted `vercel.json` and removed the obsolete `build:vercel` script.
 - Data/external-state changes: Initialized a new local Git repository in
   `reserve-flow`, then rewrote its single initial commit into six commits on
   `main`. Configured the final `origin` as
@@ -73,7 +93,11 @@ conversation updates its existing entry instead of creating duplicates.
   commits followed by this disclosure update, and enabled upstream tracking.
   Installed GitHub CLI 2.98.0 through Homebrew while resolving authentication;
   its incomplete web device flow was canceled, and the push used SSH instead.
-  No deployment, database, or other external state was created or changed.
+  The Fly-only cleanup was committed locally but was not pushed, so it did not
+  trigger the production workflow. Read-only HTTP checks were made against the
+  existing Fly deployment; no deployment, database, or other external state was
+  created or changed. Temporary build dependencies were installed in the
+  ignored documentation virtual environment and `/private/tmp` only.
 - Verification: Checksum-aware copy comparison matched all source file contents
   except this intentionally updated disclosure file. The destination contained
   393 files before Git metadata; no file exceeded 20 MB, and a targeted scan
@@ -81,28 +105,44 @@ conversation updates its existing entry instead of creating duplicates.
   whitespace check reported six pre-existing trailing-whitespace/EOF issues in
   supplied research, review, and spike documents; they were preserved to keep
   the import faithful. Final commit author and clean-worktree checks passed.
-  A case-insensitive repository and Git-history search confirmed no old
-  source-account username reference remains.
+  A case-insensitive scan of the working tree (including hidden project/Git
+  text), every reachable commit snapshot, commit messages, author/committer
+  metadata, refs, reflogs, remotes, and local Git configuration confirmed no old
+  source-account username reference remains. `origin` points only to
+  `git@github.com:greentea01x/reserve-flow.git`.
   Frozen installs and `pnpm build` passed independently for every commit under
   temporary Node 24.20.0 and the repository-pinned pnpm 10.27.0. The admin build
   retained its existing chunk-size warning; no build failed. The rewritten
   final tree matched the pre-split tree except for this updated disclosure.
   The target repository was empty before the push, the push succeeded without
   force, and the remote `main` ref matched the final local `main` commit.
-  Application tests were not run because application contents were copied
-  without modification.
+  The Fly-only change passed `pnpm biome check .`, `pnpm typecheck`, and
+  `pnpm build` under Node 24.20.0/pnpm 10.27.0; the existing admin chunk-size
+  warning remained non-fatal. The deploy workflow parsed as YAML. The spec
+  builder completed with no balance, duplicate-ID, leftover, or external-ref
+  issues, and `build.py --selftest` passed after headless-Chrome Mermaid render.
+  Live read-only checks returned 200 for `/`, `/admin/`, and `/api/readyz` at
+  `https://reserveflow-api.fly.dev`. Application tests were not rerun because
+  runtime behavior was unchanged; the edits to application files are comments.
 - AI/tools/sources: OpenAI Codex coordinating agent; shell, rsync, Git, and the
   user-supplied local project directory; Node 24.20.0, pnpm 10.27.0, TypeScript,
-  Vite, and Turborepo for isolated builds; GitHub for the empty-repository check
-  and final push; Homebrew and GitHub CLI 2.98.0 for the attempted HTTPS web
-  authentication, and OpenSSH for the successful publication. Earlier GitHub
-  HTTPS and SSH source-clone attempts failed authentication and did not change
-  remote state. No subagents were used.
+  Vite, Turborepo, Python/Markdown, Mermaid, and headless Chrome for builds;
+  GitHub for the empty-repository check and earlier final push; Homebrew and
+  GitHub CLI 2.98.0 for the attempted HTTPS web authentication, OpenSSH for the
+  successful publication, and `curl` for read-only Fly route checks. Earlier
+  GitHub HTTPS and SSH source-clone attempts failed authentication and did not
+  change remote state. No subagents were used.
 - Human review / limitations: `origin/main` now contains the dependency-ordered
   history and this publication disclosure under the `greentea01x` repository.
   Commit authorship records who created this new history; it does not imply sole
-  authorship of the copied application contents. No deployment or application
-  test was performed as part of the repository publication.
+  authorship of the copied application contents. Active production configuration
+  and canonical documentation now describe Fly.io only; remaining Vercel text is
+  limited to the explicitly superseded D-31 decision, third-party optional-peer
+  metadata in `pnpm-lock.yaml`, and factual archived research/review/disclosure
+  history. The live public routes are reachable, but authenticated browser smoke,
+  production secrets/CA validation, SMTP delivery, and restore drill remain
+  go-live gates. The Fly-only commit remains local pending an explicit push,
+  because pushing `main` can trigger the production deployment workflow.
 
 ## 2026-08-26T14:50:47+07:00 — Deploy diagnosis, demo reset, and final spec
 

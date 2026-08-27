@@ -30,6 +30,10 @@ the repository owner explicitly creates a release.
 
 ### Changed
 
+- Consolidated production delivery on one Fly.io app at
+  `https://reserveflow-api.fly.dev`, serving the employee site, admin site, API,
+  and background jobs from one image; removed the previous split-platform
+  configuration and updated the runbook, workflow, diagrams, and specification.
 - Updated employee sign-in to use employee ID and password while retaining email
   as internal account/contact data.
 - Refreshed the employee login, navigation, room selection, booking, booking
@@ -57,6 +61,8 @@ the repository owner explicitly creates a release.
 
 ### Fixed
 
+- Corrected the documentation builder's invalid Markdown package pins so the
+  published specification can be reproduced from its requirements file.
 - Removed the duplicated textual plus sign from the new-booking CTA while
   retaining its plus icon.
 - Made “แก้ไขเวลา” return to the selected room's time picker with the previously

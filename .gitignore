@@ -10,5 +10,5 @@ test-results/
 blob-report/
 *.local
 .DS_Store
-.vercel
 __pycache__/
+docs/spec/build/.venv/

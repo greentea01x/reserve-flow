@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
-    "build:vercel": "turbo run build --filter=@reserveflow/web --filter=@reserveflow/admin && rm -rf apps/web/dist/admin && cp -r apps/admin/dist apps/web/dist/admin",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",

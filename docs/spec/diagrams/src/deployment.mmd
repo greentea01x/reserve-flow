@@ -1,19 +1,16 @@
-%% title: topology ที่กำหนดใน repository — Vercel + Fly.io + PostgreSQL
+%% title: topology ที่กำหนดใน repository — Fly.io full stack + PostgreSQL
 %% id: deployment
 flowchart TB
-  subgraph VER["Vercel — static CDN + edge rewrite"]
+  subgraph FLY["Fly.io region sin · reserveflow-api.fly.dev"]
     STATIC["static dist<br/>/ = apps/web · /admin/ = apps/admin"]
-  end
-  subgraph FLY["Fly.io region sin"]
     API["api · Node 24 · Hono 4 · Drizzle<br/>1 × shared-cpu-1x 512MB · always-on<br/>jobs scheduler ในโปรเซสเดียวกัน"]
   end
   subgraph SUPA["Supabase PostgreSQL · production target"]
     PG[("PostgreSQL + btree_gist")]
   end
-  REPO["GitHub repository"] -.->|"Vercel Git integration"| STATIC
   REPO -->|"PR · push main · schedule"| GHA["GitHub Actions<br/>CI · migrate · deploy · backup"]
-  BR["เบราว์เซอร์<br/>เห็น origin เดียว · cookie __Host-sid ใบเดียว"] -->|"HTTPS · ไม่มี CORS"| VER
-  VER -->|"rewrite /api/* แบบ proxy · no-store"| API
+  BR["เบราว์เซอร์<br/>เห็น origin เดียว · cookie __Host-sid ใบเดียว"] -->|"HTTPS / · /admin/"| STATIC
+  BR -->|"HTTPS /api/ · same-origin · no-store"| API
   API -->|"IPv6 ตรง :5432 · verify-full · role rf_app"| PG
   API -->|"SMTP · nodemailer"| MAIL["operator-provided relay (deploy)<br/>Mailpit (local)"]
   GHA -.->|"flyctl deploy"| API

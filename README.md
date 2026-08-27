@@ -16,9 +16,10 @@ Summit, and Grove rooms, 80 employees, and one administrator.
 - pnpm 10.27.0
 - Docker Desktop
 
-Local PostgreSQL and Mailpit run in Docker. The production **target configuration** uses Supabase,
-Fly.io, and Vercel; external setup and go-live gates are not yet verified. Never point local
-commands at that target.
+Local PostgreSQL and Mailpit run in Docker. The production **target configuration** uses Supabase
+PostgreSQL and one Fly.io app serving the employee SPA, admin SPA, API, and background jobs from
+`https://reserveflow-api.fly.dev`; external setup and go-live gates are not yet verified. Never
+point local commands at that target.
 
 ## Start locally
 

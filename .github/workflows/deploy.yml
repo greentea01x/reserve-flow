@@ -1,6 +1,5 @@
-# Production deploy: migrations -> Fly. The front-end is NOT deployed here — Vercel
-# deploys itself from the git integration (deploy order stays migrate -> Fly -> Vercel,
-# with forward-only / backward-compatible migrations covering the ~1 min of version skew).
+# Production deploy: migrate, then deploy one Fly image containing employee, admin, API,
+# and background jobs. The single image makes the release atomic after the migration step.
 #
 # Required secrets (repository or `production` environment):
 #   FLY_API_TOKEN          fly tokens create deploy --app reserveflow-api
@@ -46,13 +45,13 @@ jobs:
           DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Deploy API to Fly
+      - name: Deploy full stack to Fly
         run: flyctl deploy --remote-only --config fly.toml
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: Verify /api/readyz
-        run: >
-          curl --fail --silent --show-error --max-time 10
-          --retry 10 --retry-delay 5 --retry-all-errors
-          https://reserveflow-api.fly.dev/api/readyz
+      - name: Verify employee, admin, and API routes
+        run: |
+          curl --fail --silent --show-error --max-time 10 --retry 10 --retry-delay 5 --retry-all-errors https://reserveflow-api.fly.dev/api/readyz
+          curl --fail --silent --show-error --max-time 10 https://reserveflow-api.fly.dev/ > /dev/null
+          curl --fail --silent --show-error --max-time 10 https://reserveflow-api.fly.dev/admin/ > /dev/null

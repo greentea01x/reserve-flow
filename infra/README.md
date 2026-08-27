@@ -2,8 +2,7 @@
 
 Production does NOT run from this directory. Prod/staging hosting is:
 
-- **Vercel** — serves both SPA dists and rewrite-proxies `/api/*` to Fly (`vercel.json` at the repo root; deploys via the Vercel git integration).
-- **Fly.io** — one always-on machine in `sin` running the Hono API, built from `apps/api/Dockerfile` (`fly.toml` prod, `fly.staging.toml` staging; staging serves its own statics, no Vercel).
+- **Fly.io** — one app in `sin` serves the employee SPA at `/`, admin SPA at `/admin/`, Hono API at `/api/`, and in-process jobs from the image built by `apps/api/Dockerfile` (`fly.toml` production, `fly.staging.toml` staging).
 - **Supabase** — managed Postgres in `ap-southeast-1`; one-time setup in [`supabase/bootstrap.sql`](supabase/bootstrap.sql). There is no Caddy and no prod compose stack.
 
 What lives here:

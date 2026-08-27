@@ -1,5 +1,5 @@
-# ReserveFlow API — staging. Deploy: flyctl deploy --remote-only --config fly.staging.toml
-# Staging is served entirely by Fly (statics baked into the image); no Vercel project.
+# ReserveFlow full stack — staging. Deploy: flyctl deploy --remote-only --config fly.staging.toml
+# Employee, admin, API, and background jobs are served entirely by one Fly app.
 # Runtime secrets as in fly.toml, pointing at the staging Supabase project.
 # Note: with auto_stop enabled the sweep stops while idle, so the staging Supabase project
 # CAN hit the 7-day inactivity pause — resume it from the dashboard when that happens.

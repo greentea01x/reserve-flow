@@ -4,11 +4,9 @@ flowchart LR
   EMP["พนักงาน 80 คน · 8 แผนก"]
   ADM["Admin 1 คน"]
   FAC["Facility · schema-supported<br/>ไม่มี canonical account/UI เฉพาะ"]
-  subgraph VERCEL["Vercel — origin เดียวที่ผู้ใช้เห็น"]
+  subgraph FLY["Fly.io — origin เดียวที่ผู้ใช้เห็น"]
     WEB["apps/web<br/>React SPA"]
     ADMAPP["apps/admin<br/>React SPA"]
-  end
-  subgraph FLY["Fly.io"]
     API["apps/api<br/>Hono + in-process jobs"]
   end
   DB[("PostgreSQL · Supabase<br/>EXCLUDE constraint")]
@@ -17,8 +15,8 @@ flowchart LR
   EMP --> WEB
   ADM --> ADMAPP
   FAC -.-> WEB
-  WEB -->|"rewrite /api"| API
-  ADMAPP -->|"rewrite /api"| API
+  WEB -->|"same-origin /api"| API
+  ADMAPP -->|"same-origin /api"| API
   API --> DB
   API --> SMTP
   SMTP --> MAIL

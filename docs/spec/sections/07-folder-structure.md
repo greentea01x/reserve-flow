@@ -16,7 +16,7 @@ reserve-flow/
 │  ├─ ui/             shared UI, AppModeSwitch, StatusBadge, SlotGrid primitives, tokens.css
 │  └─ config/         tsconfig bases, biome.json, vite.shared.ts
 ├─ infra/             compose.yml (local only) · supabase/bootstrap.sql
-├─ apps/api/Dockerfile · fly.toml · fly.staging.toml · vercel.json
+├─ apps/api/Dockerfile · fly.toml · fly.staging.toml
 ├─ docs/              spec (HTML + Markdown) และเอกสารสนับสนุนที่มีจริง
 └─ .github/workflows/ ci.yml, deploy.yml, backup.yml
 ```
@@ -99,9 +99,8 @@ reserve-flow/
 ├─ infra/
 │  ├─ compose.yml                   Postgres + Mailpit สำหรับ local dev เท่านั้น
 │  └─ supabase/bootstrap.sql        เปิด extension, สร้าง `rf_app`, grants/default privileges และปิด PostgREST roles
-├─ apps/api/Dockerfile              build API + web/admin dists; Fly รัน API และมี static fallback/staging ใน image เดียว
-├─ fly.toml · fly.staging.toml      Fly production/staging config; API production always-on
-├─ vercel.json                      production origin เดียว: web `/`, admin `/admin/*`, rewrite `/api/*` ไป Fly
+├─ apps/api/Dockerfile              build API + web/admin dists; Fly เสิร์ฟ employee/admin/API และรัน jobs จาก image เดียว
+├─ fly.toml · fly.staging.toml      Fly production/staging config; production always-on
 ├─ docs/                            spec (HTML + Markdown), deploy/init/UI handoff
 ├─ .github/workflows/               ci.yml, deploy.yml, backup.yml (ดูหัวข้อ 09)
 └─ package.json · pnpm-workspace.yaml · turbo.json · biome.json · tsconfig.json · .env (gitignored)
@@ -185,7 +184,7 @@ export async function mutate<T>(plan: LockPlan, actor: Actor, fn: (tx: Tx, at: D
 
 **Migrations.** `pnpm --filter api db:generate` → `drizzle-kit generate` เขียน `drizzle/NNNN_<name>.sql`; ของที่ Drizzle เขียนไม่ได้ (EXCLUDE, trigger, grants, audit index migration) ใช้ custom migration แล้วเขียน SQL มือในโฟลเดอร์เดียวกัน ทุกไฟล์ขึ้นต้น `SET lock_timeout='5s'` apply local ด้วย `pnpm db:migrate`; production `deploy.yml` รันคำสั่งเดียวกันผ่าน `DATABASE_URL_MIGRATE` ก่อน `flyctl deploy` — ไม่ migrate ตอน API boot และไม่ `drizzle-kit push` นอก local. ชุดปัจจุบันมี `0000`–`0009`
 
-**สอง SPA → Vercel project เดียว.** root script `build:vercel` build ทั้ง `apps/web` และ `apps/admin` แล้วคัดลอก admin dist ไป `apps/web/dist/admin`; `vercel.json` เสิร์ฟ employee SPA ที่ `/`, admin SPA ที่ `/admin/*` และ rewrite `/api/*` ไป Fly จึงยังใช้ cookie origin เดียวโดยไม่มี CORS. `apps/api/Dockerfile` build/copy dist ทั้งสองชุดไว้ด้วยเพื่อให้ Fly เป็น static fallback และเป็น origin ของ staging. สอง SPA เป็น router bundle แยกกัน ดังนั้น `AppModeSwitch` ใช้ plain anchor `/rooms` ↔ `/admin/`; render เฉพาะ role `ADMIN`, mark current mode ด้วย `aria-current` และรองรับ sidebar admin แบบ collapsed. โค้ด FE ที่ใช้ร่วมอยู่ใน `packages/ui` / `packages/shared` ไม่ก็อปสองที่
+**สอง SPA → Fly image เดียว.** root build สร้าง `apps/web/dist` และ `apps/admin/dist` แยกกัน; `apps/api/Dockerfile` copy dist ทั้งสองชุดและ Hono เสิร์ฟ employee SPA ที่ `/`, admin SPA ที่ `/admin/*` กับ API ที่ `/api/*` จาก `https://reserveflow-api.fly.dev` จึงใช้ cookie origin เดียวโดยไม่มี CORS. สอง SPA เป็น router bundle แยกกัน ดังนั้น `AppModeSwitch` ใช้ plain anchor `/rooms` ↔ `/admin/`; render เฉพาะ role `ADMIN`, mark current mode ด้วย `aria-current` และรองรับ sidebar admin แบบ collapsed. โค้ด FE ที่ใช้ร่วมอยู่ใน `packages/ui` / `packages/shared` ไม่ก็อปสองที่
 :::
 
 :::details ทำไมไม่แยก `packages/db` และ `packages/email`

@@ -1,7 +1,7 @@
 # Build context is the REPO ROOT (fly.toml points here):
 #   docker build -f apps/api/Dockerfile .
-# One image carries the API plus both SPA dists, so a bare Fly URL can serve staging on its
-# own and prod can drop the Vercel layer in an afternoon if the proxy hop ever disappoints.
+# One Fly image carries the API plus both SPA dists: employee `/`, admin `/admin/`, and
+# API `/api/` share one production origin.
 
 FROM node:24-slim AS base
 ENV TURBO_TELEMETRY_DISABLED=1

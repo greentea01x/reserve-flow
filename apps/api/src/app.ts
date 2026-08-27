@@ -169,9 +169,9 @@ export function createApp(dependencies: AppDependencies) {
     }),
   );
 
-  // Vercel proxies /api/* through an external rewrite and caches those responses by default;
-  // a cached availability grid is a double-booking-shaped bug. Belt to vercel.json's braces.
-  // try/finally so error responses built by app.onError carry the header as well.
+  // API responses must never be cached by Fly's edge or an intermediate proxy; a cached
+  // availability grid is a double-booking-shaped bug. try/finally ensures responses built by
+  // app.onError carry the header as well.
   app.use('/api/*', async (context, next) => {
     try {
       await next();

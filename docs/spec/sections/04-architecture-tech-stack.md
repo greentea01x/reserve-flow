@@ -5,7 +5,7 @@ ReserveFlow คือ CRUD app ขนาด ~30 bookings/วัน ที่ม�
 
 ### 4.1 ภาพรวมระบบ (System context & deployment)
 
-**Topology ที่ repository กำหนดไว้** ใช้ Vercel เสิร์ฟสอง SPA จาก output เดียวและ rewrite `/api/*` ไปยัง API บน Fly.io (`sin`) ซึ่งต่อ PostgreSQL ผ่าน `DATABASE_URL` — เบราว์เซอร์จึงเห็น origin เดียวและใช้ cookie `__Host-sid` ใบเดียวกับทั้งสองแอป ไม่มี Redis หรือ worker process แยก; `infra/compose.yml` ใช้สำหรับ local PostgreSQL + Mailpit ส่วน `fly.staging.toml` เป็นเพียง configuration สำหรับ staging แบบ Fly-only ไม่ใช่หลักฐานว่า staging app หรือ Supabase project ถูก provision/deploy แล้ว
+**Topology ที่ repository กำหนดไว้** ใช้ Fly.io (`sin`) app เดียวเสิร์ฟ employee SPA ที่ `/`, admin SPA ที่ `/admin/`, API ที่ `/api/` และ scheduler จาก Docker image เดียว แล้วต่อ PostgreSQL ผ่าน `DATABASE_URL` — เบราว์เซอร์จึงเห็น origin เดียว `https://reserveflow-api.fly.dev` และใช้ cookie `__Host-sid` ใบเดียวกับทั้งสองแอป ไม่มี Redis หรือ worker process แยก; `infra/compose.yml` ใช้สำหรับ local PostgreSQL + Mailpit ส่วน `fly.staging.toml` เป็นเพียง configuration สำหรับ staging ไม่ใช่หลักฐานว่า staging app หรือ Supabase project ถูก provision/deploy แล้ว
 
 **รูปแบบสถาปัตยกรรม:** 3-tier modular monolith — presentation เป็น React SPA สองชุด, application เป็น Hono API กับ scheduler ใน Node process เดียว และ persistence เป็น PostgreSQL หนึ่งฐาน งานธุรกิจแบ่งเป็น route/service/module ภายใน monorepo แต่มี production runtime backend เพียงก้อนเดียว จึงไม่มี network boundary ภายใน, distributed transaction หรือ eventual consistency ระหว่าง microservices; notification outbox ยังอยู่ใน PostgreSQL เดียวกันและถูก drain โดย scheduler ใน API process
 
@@ -15,38 +15,34 @@ ReserveFlow คือ CRUD app ขนาด ~30 bookings/วัน ที่ม�
 
 | ชั้น / งาน | Platform หรือ service | สิ่งที่ deploy และหน้าที่ | Configuration ที่เป็นหลักฐานใน repo |
 |---|---|---|---|
-| Web + edge | **Vercel** | Static bundle ของ employee app ที่ `/` และ admin app ที่ `/admin/` ใน project/origin เดียว; proxy `/api/*` ไป Fly.io และปิด rewrite caching ของ API | `vercel.json`, root script `build:vercel` |
-| API + background jobs | **Fly.io** | app `reserveflow-api` ที่ region `sin`; Node 24 + Hono API และ scheduler process เดียว, `shared-cpu-1x` 512 MB, always-on 1 machine; image มี SPA bundles เป็น fallback ด้วย | `fly.toml`, `apps/api/Dockerfile`; staging shape อยู่ใน `fly.staging.toml` |
+| Web + admin + API + background jobs | **Fly.io** | app `reserveflow-api` ที่ region `sin`; employee app ที่ `/`, admin app ที่ `/admin/`, Node 24 + Hono API ที่ `/api/` และ scheduler process เดียว, `shared-cpu-1x` 512 MB, always-on 1 machine | `fly.toml`, `apps/api/Dockerfile`; staging shape อยู่ใน `fly.staging.toml` |
 | Transactional database | **Supabase PostgreSQL** | production target ที่ `ap-southeast-1`; runtime role `rf_app` ต่อ direct `:5432`, ส่วน migration/backup ใช้ Supavisor **session** pooler `:5432`; ใช้ `btree_gist`, `citext` และ EXCLUDE constraint | `infra/supabase/bootstrap.sql`, Drizzle migrations, `DATABASE_URL` / `DATABASE_URL_MIGRATE` contract |
 | Email delivery | **SMTP relay ที่ operator เลือก** | Nodemailer ส่ง notification และไฟล์ `.ics` จาก PostgreSQL outbox; implementation ไม่ผูกกับ Resend/Postmark หรือ provider รายใดรายหนึ่ง; local ใช้ Mailpit | `SMTP_*`, `MAIL_*`, `apps/api/src/email`, `infra/compose.yml` |
-| CI + delivery orchestration | **GitHub Actions** | PR/main: lint, typecheck, test, build; production workflow: migrate Supabase → deploy Fly → poll readiness; Vercel deploy แยกผ่าน Git integration จึงไม่ atomic กับ Fly | `.github/workflows/ci.yml`, `.github/workflows/deploy.yml` |
+| CI + delivery orchestration | **GitHub Actions** | PR/main: lint, typecheck, test, build; production workflow: migrate Supabase → deploy full-stack Fly image → verify `/api/readyz`, `/` และ `/admin/` | `.github/workflows/ci.yml`, `.github/workflows/deploy.yml` |
 | Backup storage | **Cloudflare R2** | GitHub Actions ทำ nightly `pg_dump -Fc`, เข้ารหัสด้วย `age`, เก็บใน R2 และลบ dump เกิน retention; restore drill ยังเป็น go-live gate | `.github/workflows/backup.yml` |
 | Health + operations | **Fly health checks + structured logs + Healthchecks.io heartbeat** | `/api/healthz`, `/api/readyz`, Fly service check, pino request logs และ heartbeat ของ backup; ยังไม่มี external uptime/error tracker ที่ provision ยืนยันแล้ว | `fly.toml`, API health routes, `.github/workflows/backup.yml` |
 | Local development | **Docker Compose** | PostgreSQL 18 + Mailpit; Vite dev servers proxy `/api` ไป API local และไม่ใช้ production cloud services | `infra/compose.yml`, Vite configs |
 
-**Request path หลัก:** Browser → Vercel → (`/` หรือ `/admin/` เป็น static SPA; `/api/*` เป็น proxy) → Fly.io → Supabase PostgreSQL. เส้นทางประกอบคือ Fly.io → SMTP relay สำหรับอีเมล และ GitHub Actions → Supabase/R2 สำหรับ migration กับ backup
+**Request path หลัก:** Browser → Fly.io (`/` หรือ `/admin/` เป็น static SPA; `/api/*` เป็น Hono API บน origin เดียวกัน) → Supabase PostgreSQL. เส้นทางประกอบคือ Fly.io → SMTP relay สำหรับอีเมล และ GitHub Actions → Fly/Supabase/R2 สำหรับ deploy, migration และ backup
 
 บริบทของระบบและผู้เกี่ยวข้องแสดงไว้แล้วใน [หัวข้อ 00 · ภาพรวม](#overview) ซึ่งเป็นจุดแรกที่อธิบายแนวคิดนี้
 
 สิ่งที่ควรอ่านจากภาพนี้: deployable backend คือ **Docker image เดียว + Postgres URL เดียว** และไม่มี Supabase client SDK; image เดียวกันมี API กับ dist ของสอง SPA ส่วน SMTP และ R2 เป็น integration ที่ผู้ดูแลต้องใส่ credentials และตรวจสอบการทำงานใน environment จริง
 
 ```mermaid
-%% title: topology ที่กำหนดใน repository — Vercel + Fly.io + PostgreSQL (Deployment configuration)
+%% title: topology ที่กำหนดใน repository — Fly.io full stack + PostgreSQL (Deployment configuration)
 %% id: deployment
 flowchart TB
-  subgraph VER["Vercel — static CDN + edge rewrite"]
+  subgraph FLY["Fly.io region sin · reserveflow-api.fly.dev"]
     STATIC["static dist<br/>/ = apps/web · /admin/ = apps/admin"]
-  end
-  subgraph FLY["Fly.io region sin"]
     API["api · Node 24 · Hono 4 · Drizzle<br/>1 × shared-cpu-1x 512MB · always-on<br/>jobs scheduler ในโปรเซสเดียวกัน"]
   end
   subgraph SUPA["Supabase PostgreSQL · production target"]
     PG[("PostgreSQL + btree_gist")]
   end
-  REPO["GitHub repository"] -.->|"Vercel Git integration"| STATIC
   REPO -->|"PR · push main · schedule"| GHA["GitHub Actions<br/>CI · migrate · deploy · backup"]
-  BR["เบราว์เซอร์<br/>เห็น origin เดียว · cookie __Host-sid ใบเดียว"] -->|"HTTPS · ไม่มี CORS"| VER
-  VER -->|"rewrite /api/* แบบ proxy · no-store"| API
+  BR["เบราว์เซอร์<br/>เห็น origin เดียว · cookie __Host-sid ใบเดียว"] -->|"HTTPS / · /admin/"| STATIC
+  BR -->|"HTTPS /api/ · same-origin · no-store"| API
   API -->|"IPv6 ตรง :5432 · verify-full · role rf_app"| PG
   API -->|"SMTP · nodemailer"| MAIL["operator-provided relay (deploy)<br/>Mailpit (local)"]
   GHA -.->|"flyctl deploy"| API
@@ -58,15 +54,14 @@ flowchart TB
 สิ่งที่ควรอ่านจากภาพนี้: `api` เป็นโปรเซสเดียวที่ถือทั้ง HTTP และ jobs — การแยก worker ออกเป็น Fly machine ที่สองทำได้ภายหลังด้วย env ตัวเดียวโดยไม่แก้ code (§4.7)
 
 :::details รายละเอียด topology, เส้นทาง route, connection และ migrate
-- **Vercel configuration** — root `build:vercel` build สอง SPA แล้ว copy `apps/admin/dist` ไปใต้ `apps/web/dist/admin`; `vercel.json` กำหนด output เป็น `apps/web/dist`, rewrite `/api/:path*` ไป Fly, และ SPA fallbacks สำหรับ `/admin/*` กับ route อื่น ๆ ตามลำดับที่เขียนไว้ในไฟล์; API ติด `Cache-Control: no-store` และ config ติด `x-vercel-enable-rewrite-caching: 0` ให้ `/api`. Repository ไม่ยืนยัน plan, project provisioning, Git integration หรือ platform route order นอกเหนือจาก config นี้
-- **Fly production configuration** — `fly.toml` กำหนด app `reserveflow-api`, region `sin`, `shared-cpu-1x` 512 MB, `min_machines_running=1` และ `auto_stop_machines=false`; เมื่อ `WORKER_ENABLED=true` โปรเซสเดียวรัน `booking.sweep` ทุก 60 วินาที, `notify.send` ทุก 10 วินาที และ `maintenance.daily` เวลา 03:15 Asia/Bangkok; image มี dist ของสอง SPA และ redirect request นอก `/api` ที่ host ไม่ตรง `PUBLIC_BASE_URL` ไป canonical origin ด้วย 308
+- **Fly production configuration** — `fly.toml` กำหนด app `reserveflow-api`, region `sin`, canonical origin `https://reserveflow-api.fly.dev`, `shared-cpu-1x` 512 MB, `min_machines_running=1` และ `auto_stop_machines=false`; Docker image build/copy dist ของสอง SPA และ Hono เสิร์ฟ employee `/`, admin `/admin/` กับ API `/api/`; เมื่อ `WORKER_ENABLED=true` โปรเซสเดียวรัน `booking.sweep` ทุก 60 วินาที, `notify.send` ทุก 10 วินาที และ `maintenance.daily` เวลา 03:15 Asia/Bangkok; host อื่นถูก redirect ไป canonical origin ด้วย 308
 - **PostgreSQL target** — production docs/config มุ่งไป Supabase PostgreSQL + `btree_gist`/`citext`; runtime ต่อผ่าน `DATABASE_URL`, ส่วน migrate/backup ใช้ `DATABASE_URL_MIGRATE`; `env.ts` ปฏิเสธ transaction-pooler port `:6543` และ `sslmode=disable`; `infra/supabase/bootstrap.sql` สร้าง `rf_app`, ตั้ง `search_path = public, extensions`, revoke สิทธิ์ anon/authenticated และระบุ dashboard step ที่ SQL ทำแทนไม่ได้
 - **อีเมล** — runtime ใช้ SMTP settings จาก environment ผ่าน Nodemailer; local compose ใช้ Mailpit `:1025` (UI `:8025`). Repository ไม่ยืนยันว่า relay production/staging ถูก provision หรือทดสอบแล้ว
 - **Backup** — `.github/workflows/backup.yml` schedule `pg_dump -Fc` → `age` → R2 + healthchecks.io heartbeat ทุกคืน และ `SELECT 1` รายสัปดาห์; การสำเร็จของ schedule, bucket และ restore ต้องตรวจจาก external state/runbook แยกต่างหาก
-- **migrate/deploy** — `.github/workflows/deploy.yml` รัน `drizzle-kit migrate` ผ่าน `DATABASE_URL_MIGRATE` แล้ว `flyctl deploy --remote-only` และ poll `/api/readyz`; workflow นี้ไม่ deploy Vercel จึงไม่มี automatic cross-platform ordering ที่ repository รับประกัน
+- **migrate/deploy** — `.github/workflows/deploy.yml` รัน `drizzle-kit migrate` ผ่าน `DATABASE_URL_MIGRATE` แล้ว `flyctl deploy --remote-only`; image เดียวปล่อย employee/admin/API/jobs พร้อมกัน จากนั้น workflow ตรวจ `/api/readyz`, `/` และ `/admin/`
 - **TZ policy** — schema ใช้ `timestamptz`, wire ใช้ ISO-8601 และ business-time helpers ใช้ค่าคงที่ `APP_TZ='Asia/Bangkok'`/UTC+7 โดยไม่พึ่ง local timezone ของ process
 - **Staging configuration** — `fly.staging.toml` กำหนดชื่อ `reserveflow-staging`, Fly-only static serving และ auto-stop; ไม่มี staging deploy workflow หรือหลักฐาน external provisioning ใน repository; **local dev = `infra/compose.yml`** (postgres + mailpit)
-- ไฟล์ที่ ship แล้ว: `vercel.json`, `fly.toml`, `fly.staging.toml`, `.github/workflows/{ci,deploy,backup}.yml`, `infra/supabase/bootstrap.sql`; environments / CI / runbook ฉบับเต็ม: หัวข้อ 09
+- ไฟล์ที่ ship แล้ว: `fly.toml`, `fly.staging.toml`, `apps/api/Dockerfile`, `.github/workflows/{ci,deploy,backup}.yml`, `infra/supabase/bootstrap.sql`; environments / CI / runbook ฉบับเต็ม: หัวข้อ 09
 :::
 
 ### 4.2 เส้นทางของ request "สร้างการจอง"
@@ -74,7 +69,7 @@ flowchart TB
 `POST /api/v1/bookings` ใช้ Zod schema ที่ประกาศใน route → ตรวจสิทธิ์จองแทนและ policy แบบ fail-fast → เรียก `createBooking()` ซึ่งเปิด transaction ตามลำดับ **idempotency → users → rooms → `$decision_time`** → INSERT โดยให้ EXCLUDE constraint เป็นผู้ตัดสิน overlap คนสุดท้าย → เขียน `audit_logs` + notification outbox ใน transaction เดียวกัน → ตอบ `201`; การยิงซ้ำด้วย `Idempotency-Key` เดิมคืนใบเดิมเสมอ
 
 :::details ทั้ง 8 ขั้นของ `POST /api/v1/bookings` (8 ขั้น)
-1. **Edge** — เมื่อ deploy ตาม `vercel.json`, Vercel rewrite `POST /api/v1/bookings` ไป API บน Fly; browser แนบ cookie `__Host-sid`; API ยอมรับ unsafe request เมื่อ `Origin` อยู่ใน allowlist หรือ `Sec-Fetch-Site: same-origin` มิฉะนั้นปฏิเสธ
+1. **Origin** — browser ส่ง `POST /api/v1/bookings` ตรงไปยัง Hono บน Fly origin เดียวกับ SPA พร้อม cookie `__Host-sid`; API ยอมรับ unsafe request เมื่อ `Origin` อยู่ใน allowlist หรือ `Sec-Fetch-Site: same-origin` มิฉะนั้นปฏิเสธ
 2. **Middleware/route guard** — ออก `request_id`, ใช้ general rate limit ต่อ session cookie (หรือ IP/`anon` เมื่อไม่มี cookie), resolve session → `actor` (better-auth), บังคับ header `Idempotency-Key`; หลังตรวจ replay แล้วจึงใช้ create limit ต่อ `actor.id`
 3. **Validation** — route-local `createSchema` เป็น `z.strictObject()` และ `parseBody()` ปฏิเสธ unknown/invalid fields; schema นี้ไม่ได้มาจาก `packages/shared` และไม่ได้ผูกผ่าน `@hono/zod-openapi`; error ออกใน envelope `{code,message,details,request_id}`
 4. **Authz + policy (fail fast, ยังไม่ผูกพัน)** — route ตรวจว่า `owner_id` อื่นใช้ได้เฉพาะ ADMIN แล้วตรวจห้อง active และ window จาก `settings`/business hours/holidays ก่อนเริ่ม transaction; binding room state ถูกอ่านซ้ำ `FOR SHARE` หลัง room advisory lock ในขั้น 5
@@ -89,7 +84,7 @@ flowchart TB
 | ชั้น | สิ่งที่เลือก |
 |---|---|
 | Repo / tooling | pnpm workspaces + Turborepo; Node 24 LTS; TypeScript strict; **Biome** (lint + format) |
-| Front-ends | **สอง Vite + React 19 SPA** (`apps/web`, `apps/admin`) + **TanStack Router**; `build:vercel` รวมทั้งสอง dist ใต้ output เดียว และ Docker image เก็บ dist ทั้งคู่เพื่อเสิร์ฟจาก Fly ได้ |
+| Front-ends | **สอง Vite + React 19 SPA** (`apps/web`, `apps/admin`) + **TanStack Router**; root build สร้าง dist แยกกันและ Docker image เก็บทั้งคู่ให้ Hono เสิร์ฟจาก Fly origin เดียว |
 | UI | Tailwind CSS v4 + native semantic elements และ custom components ใน `packages/ui`; ไม่มี shadcn/Radix/sonner; self-hosted Noto Sans Thai/Inter; pastel tokens ที่ระบุเป้าหมาย contrast ระดับ AA |
 | Forms | Controlled native React forms; API ใช้ route-local Zod validators ส่วน front-end มี form checks และ TypeScript payload types ของตัวเอง; `packages/shared` แชร์ enums/error codes/constants เท่านั้น; ไม่มี React Hook Form |
 | Server state | TanStack Query; ตัวกรองปฏิทินอยู่ใน URL; ไม่มี Redux/Zustand |
@@ -101,7 +96,7 @@ flowchart TB
 | DB :icon[database] | PostgreSQL (CI/local ใช้ PG18; deploy target คือ Supabase) + `btree_gist`; EXCLUDE constraint **ตัวเดียว (A)** บน `bookings`; live-slot writers ใช้ room advisory locks ส่วน sweep ที่ย้ายสถานะออกจาก live set ใช้ row locks/SQL idempotence |
 | ORM | Drizzle ORM + `drizzle-kit generate`/committed SQL; EXCLUDE อยู่ใน `0004_bookings_exclude.sql`, extension bootstrap อยู่ใน local/Supabase infra และ append-only audit trigger อยู่ใน `0000_functions.sql`; **ห้าม `drizzle-kit push` นอก local** |
 | Auth :icon[lock] | **better-auth** (`employee_code` + password ที่ wrapper resolve ไปยัง internal email credential, Postgres sessions, cookie `__Host-sid`, admin plugin, argon2id ผ่าน `@node-rs/argon2`) + rate-limit/lockout ของเรา |
-| CSRF / CORS | origin เดียว (Vercel rewrite แบบ proxy ไม่ใช่ redirect) → ไม่มี CORS; SameSite=Lax + middleware ของเราตรวจ `Origin`/`Sec-Fetch-Site` บน **ทุก** unsafe method; ไม่มี CSRF token |
+| CSRF / CORS | สอง SPA และ API อยู่บน Fly origin เดียว → ไม่มี CORS; SameSite=Lax + middleware ของเราตรวจ `Origin`/`Sec-Fetch-Site` บน **ทุก** unsafe method; ไม่มี CSRF token |
 | Authz :icon[shield] | `createRequireAuth`/`createRequireAdmin` route guards + permission checks ใน booking routes/services + serializer `toViewerBooking()`; ไม่มีโมดูล `can()`, CASL หรือ RLS |
 | Jobs | **in-process scheduler** ในโปรเซส API เมื่อ `WORKER_ENABLED=true`: `booking.sweep` ทุกนาที, `notify.send` ทุก 10 s + kick หลัง commit, และ `maintenance.daily` เวลา 03:15 Asia/Bangkok |
 | Email :icon[mail] | **Nodemailer over SMTP** ผ่านตาราง `notifications` (outbox); templates ภาษาไทยเป็น functions ที่คืน text/HTML; `ical-generator` สำหรับ .ics; local ใช้ Mailpit ส่วน deploy ใช้ SMTP env ของ operator |
@@ -109,8 +104,8 @@ flowchart TB
 | Files | รูปห้อง JPEG/PNG/WebP ขนาดไม่เกิน 5 MB เป็น `bytea` ใน `rooms`; authenticated `GET /api/v1/rooms/:id/photo` ส่ง bytes เดิมพร้อม MIME ที่ sniff ได้และรับ global `Cache-Control: no-store`; ไม่มี ETag หรือ server-side re-encode |
 | Charts :icon[chart] | semantic `<table>` + CSS bars/cells สำหรับ utilization และ heatmap |
 | Testing | Vitest (unit + API integration กับ PostgreSQL จริง) รวม concurrency/lock/permission gates; browser journey และ accessibility ใช้ manual checklist ตาม `docs/testing/e2e-plan.md` — ยังไม่มี automated Playwright E2E ใน CI |
-| CI/CD | CI มี 4 jobs: Biome lint, typecheck, Vitest บน PostgreSQL service และ build; deploy workflow รัน migrate → Fly deploy → `/api/readyz`; frontend deployment ไม่อยู่ใน workflow และ repository ไม่รับประกันลำดับกับ Vercel |
-| Deploy :icon[server] | `vercel.json`/`build:vercel` เตรียม SPA output + `/api` rewrite; `fly.toml` เตรียม app `reserveflow-api`; Docker image เสิร์ฟ API และ SPA dist ได้; external deployment/provisioning status ไม่ได้เก็บใน repository |
+| CI/CD | CI มี 4 jobs: Biome lint, typecheck, Vitest บน PostgreSQL service และ build; deploy workflow รัน migrate → Fly full-stack deploy → ตรวจ `/api/readyz`, `/` และ `/admin/` |
+| Deploy :icon[server] | `fly.toml` เตรียม app `reserveflow-api`; Docker image เดียวเสิร์ฟ employee/admin/API และรัน jobs จึงปล่อยทั้ง stack พร้อมกัน; external deployment/provisioning status ไม่ได้เก็บใน repository |
 | Observability | pino JSON + request id + log redaction; `/api/healthz` และ `/api/readyz`; Fly/deploy workflow ตรวจ readiness; failed-email queue + retry อยู่ใน admin |
 | Backups | scheduled workflow เตรียม `pg_dump -Fc \| age` → R2 + heartbeat และ weekly `SELECT 1`; repository ยังไม่มี automated restore drill, scrub script หรือ completed drill log จึงต้องถือ restore verification เป็นงานปฏิบัติการที่ยังค้าง |
 | Security baseline | HTTPS, cookie `__Host-`, argon2id, rate limits, RBAC คืน 404 สำหรับ resource ที่มองไม่เห็น, schema-owner migration role (`rf_owner` ใน local / `postgres` บน Supabase) แยกจาก runtime role `rf_app`, zod-validated env, log redaction, PDPA retention |
@@ -119,7 +114,7 @@ flowchart TB
 | ชั้น | เหตุผล | ทางเลือกที่แพ้และเพราะอะไร |
 |---|---|---|
 | Repo / tooling | strict node_modules ของ pnpm กัน `apps/web` import ของฝั่ง server โดยบังเอิญ; Turbo = 1 devDep + 20 บรรทัดแลกกับ `--filter` และ CI cache; Biome = binary เดียวแทน ESLint + Prettier + 6 plugins | Nx (เครื่องจักรสำหรับองค์กร 20 dev); ESLint + Prettier (8 devDeps + 150 บรรทัด config เพื่อผลเท่ากัน) |
-| Front-ends | API ต้องเป็น long-running service อยู่แล้ว (jobs/SMTP) จึงไม่ต้องเพิ่ม SSR runtime; TanStack Router `validateSearch` functions normalize URL state; สอง build แยก employee/admin code แต่ `build:vercel` รวมสอง dist เป็น frontend artifact เดียว และ Docker image ก็ถือทั้งคู่ — frontend สองชุดออกพร้อมกัน แต่ Fly กับ Vercel ไม่ใช่ atomic cross-platform release | Next.js (เลือกเมื่อทีม standardise ที่ Next อยู่แล้ว); app เดียว + lazy `/admin/*` chunks (ประหยัด router/bootstrap หนึ่งชุดแต่ shell ต่างกัน); React Router (typed search params อ่อนกว่า) |
+| Front-ends | API ต้องเป็น long-running service อยู่แล้ว (jobs/SMTP) จึงไม่ต้องเพิ่ม SSR runtime; TanStack Router `validateSearch` functions normalize URL state; สอง build แยก employee/admin code และ Docker image ถือทั้งคู่ — employee/admin/API/jobs จึงเป็น atomic Fly release | Next.js (เลือกเมื่อทีม standardise ที่ Next อยู่แล้ว); app เดียว + lazy `/admin/*` chunks (ประหยัด router/bootstrap หนึ่งชุดแต่ shell ต่างกัน); React Router (typed search params อ่อนกว่า) |
 | UI | native semantic elements + custom components ทำให้ควบคุม label/focus/aria ได้ตรงโดยไม่เพิ่ม UI runtime; Tailwind v4 config อยู่ใน CSS (`@theme`) และ tokens อยู่ใน `packages/ui`; Thai ใช้ self-hosted font | shadcn/Radix, MUI และ Mantine เพิ่ม dependency/visual system ที่ผลิตภัณฑ์นี้ไม่ต้องใช้ |
 | Forms | form state ขนาดเล็กถือใน React โดยตรง; API ตรวจซ้ำด้วย route-local Zod และ front-end สร้าง payload ผ่าน hand-written types/checks — dependency form framework ไม่คุ้มสำหรับฟอร์มชุดนี้ แต่ schema drift ระหว่างสองฝั่งต้องอาศัย tests/review | React Hook Form/Formik/TanStack Form เพิ่ม abstraction โดยไม่มี field-array ซับซ้อนใน employee flow |
 | Server state | ทุกอย่างบนจอคือ server state; `staleTime 30s` + `refetchOnWindowFocus` กัน admin ทำงานกับ list เก่า (ยกเลิก/เช็กอินจากข้อมูลค้าง); client state ที่เหลือคือ "dialog เปิดอยู่ไหม" = `useState` | SWR (mutation/invalidation ergonomics อ่อนกว่า); Zustand (ไม่มี cross-tree client state ให้เก็บ) |
@@ -146,7 +141,7 @@ flowchart TB
 | ชั้น | เหตุผล | ทางเลือกที่แพ้และเพราะอะไร |
 |---|---|---|
 | Auth | better-auth ให้ Postgres sessions, password hashing hooks และ admin plugin schema; app ยังเป็นเจ้าของ employee-code wrapper, lockout และ admin user lifecycle เอง; deactivate ลบ session rows ใน transaction และ middleware re-check `users.status` | hand-rolled sessions/JWT/Keycloak ถูกตัดออก; **future option ที่ยังไม่ configure:** company SSO/OIDC |
-| CSRF / CORS | two SPAs + API ใต้ origin เดียว (Vercel rewrite) = cookie เดียว, ไม่มี preflight, ไม่มี cookie-domain bug; Hono `csrf()` ตรวจเฉพาะ content-type แบบฟอร์มจึงไม่พอ (หัวข้อ 06 C-04) | token-based CSRF (เพิ่มชิ้นส่วนเพื่อแก้ปัญหาที่ topology ตัดทิ้งไปแล้ว) |
+| CSRF / CORS | two SPAs + API ใต้ Fly origin เดียว = cookie เดียว, ไม่มี preflight, ไม่มี cookie-domain bug; Hono `csrf()` ตรวจเฉพาะ content-type แบบฟอร์มจึงไม่พอ (หัวข้อ 06 C-04) | token-based CSRF (เพิ่มชิ้นส่วนเพื่อแก้ปัญหาที่ topology ตัดทิ้งไปแล้ว) |
 | Authz | 3 roles × ~8 actions — policy DSL คือ overhead ล้วน; ถ้า title ไปถึง browser ถือว่าเปิดเผยแล้ว จึงต้อง mask ที่ API ไม่ใช่ CSS | CASL (ceremony); RLS (ต้อง `SET LOCAL app.user_id` ทุก pooled checkout และทำให้ job ที่ไม่มี user ยุ่งยาก) |
 :::
 
@@ -175,7 +170,7 @@ flowchart TB
 
 ### 4.4 หลักการออกแบบที่ใช้ตัดสินทุกอย่าง (Design principles)
 
-- **P-01 Origin เดียว, ไม่มี CORS** :icon[lock] — `/`, `/admin/`, `/api` อยู่ใต้ origin เดียวเมื่อ deploy ตาม config: cookie `__Host-sid` ใบเดียวใช้ทั้งสองแอป, ไม่มี `Domain=` attribute, unsafe requests ตรวจ `Origin`/`Sec-Fetch-Site`; `/api` ติด `Cache-Control: no-store` และ Vercel config ปิด rewrite caching. หากย้าย API ไป subdomain ต้องออกแบบ CORS/credential/CSRF ใหม่
+- **P-01 Origin เดียว, ไม่มี CORS** :icon[lock] — `/`, `/admin/`, `/api` อยู่ใต้ Fly origin เดียวเมื่อ deploy ตาม config: cookie `__Host-sid` ใบเดียวใช้ทั้งสองแอป, ไม่มี `Domain=` attribute, unsafe requests ตรวจ `Origin`/`Sec-Fetch-Site`; `/api` ติด `Cache-Control: no-store`. หากย้าย API ไป subdomain ต้องออกแบบ CORS/credential/CSRF ใหม่
 - **P-02 DB การันตี, service functions เป็น funnel** :icon[database] — EXCLUDE constraint A เป็น final arbiter; booking routes เรียก functions ใน `apps/api/src/modules/bookings/service.ts` (`createBooking`, `updateBooking`, `shiftBookingToDemoCheckin`, `replaceAttendees`, `cancelBooking`, `checkInById`, `checkInByRoom`) ซึ่งใช้ transaction/lock helpers กลางจาก `lib/tx.ts`; user deactivation ใน `modules/users/service.ts` มี cancellation writer ที่ล็อก users/rooms ตามลำดับ ส่วน sweep/maintenance เป็น SQL writers ที่มี invariants ของตนเอง. ไม่มี `bookingService.mutate` หรือ CI grep gate
 - **P-03 Transactional outbox** :icon[mail] — mutation ที่ต้องส่ง email เขียน `notifications` ใน transaction เดียวกับ domain/audit change; worker drain ภายหลังด้วย persisted attempts/backoff/dead-letter จึงไม่ทำให้ SMTP failure rollback booking. Check-in/complete ซึ่งไม่ต้องส่ง mail ไม่สร้าง outbox row
 - **P-04 Sweep ที่ idempotent แทน timer ต่อ booking** :icon[refresh] — `booking.sweep` คำนวณ auto-release, complete และ reminder จากตารางทุกนาที; job ใช้ advisory lock ต่อชื่อและ SQL idempotence จึงรันซ้ำได้โดยไม่สร้าง per-booking timers
@@ -220,7 +215,7 @@ code มี `// ponytail:` comments หลายจุดเพื่อบั�
 | ทางลัด | เพดาน | ทางขึ้นเมื่อถึงเพดาน |
 |---|---|---|
 | `pg_advisory_xact_lock` ต่อห้อง (หนึ่ง live-slot writer ต่อห้อง) | contention ทำ write latency สูงจนวัดได้ | EXCLUDE ยังป้องกัน literal overlap แต่ configured buffer พึ่ง lock+probe; ก่อนถอด lock ต้องตั้ง buffer=0 หรือย้าย buffer invariant ลง DB แล้วเพิ่ม concurrency tests/retry สำหรับ `40P01`/`40001` |
-| Vercel rewrite เป็นกลไก origin เดียว | proxy hop ทำ p95 จากกรุงเทพแย่จนวัดได้ | benchmark ก่อน; Docker image เสิร์ฟสอง SPA ได้อยู่แล้ว จึงสามารถชี้ canonical origin ไป Fly หลังทดสอบ cookie/static/deep links |
+| Fly machine เดียวเสิร์ฟ static/API/jobs | traffic หรือ jobs ทำให้ API p95 จากกรุงเทพแย่จนวัดได้ | benchmark ก่อน; scale machine/CPU หรือแยก worker จาก image เดิม โดยคง employee/admin/API ไว้ใต้ origin เดียว |
 | Supabase deploy target + scheduled off-platform dump configuration | ธุรกิจขอ RPO < 24 ชม. หรือประกาศ business-critical | ประเมิน provider plan ที่มี backup/PITR ณ เวลานั้น + second API machine; ห้ามอ้างพร้อมใช้จน restore/scale test ผ่าน |
 | รูปห้องเป็น `bytea` ใน `rooms` | รูปกลายเป็น gallery ต่อห้อง หรือไฟล์โตเกินหลัก MB | ย้ายไป Supabase Storage (bucket + policy) |
 | jobs scheduler ในโปรเซส API (`WORKER_ENABLED=true`) | งาน job เริ่มโผล่ใน API p95 (เช่น CSV import 1,000 คน, render .ics จำนวนมาก) | start Fly machine ที่สองจาก image เดิมด้วย `WORKER_ENABLED=true` และตั้งของ API เป็น `false` — ไม่แก้ code |

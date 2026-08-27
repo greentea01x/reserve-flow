@@ -45,8 +45,8 @@ const envSchema = z
      */
     DATABASE_URL_MIGRATE: postgresUrl.optional(),
     PUBLIC_BASE_URL: z.url({ protocol: /^https?$/ }),
-    // Behind the Fly proxy X-Forwarded-For is present but crosses two proxies in prod
-    // (Vercel edge -> Fly), so any derived client IP stays advisory-only.
+    // Behind the Fly proxy X-Forwarded-For is present, but any derived client IP stays
+    // advisory-only until the exact trusted-proxy chain is verified.
     TRUST_PROXY: booleanFromEnvironment.default(false),
     BETTER_AUTH_SECRET: z.string().min(32),
     /** Comma-separated allowlist for account emails (§6.3.6). Empty = any domain. */

@@ -15,11 +15,9 @@ flowchart LR
   EMP["พนักงาน 80 คน · 8 แผนก"]
   ADM["Admin 1 คน"]
   FAC["Facility · schema-supported<br/>ไม่มี canonical account/UI เฉพาะ"]
-  subgraph VERCEL["Vercel — origin เดียวที่ผู้ใช้เห็น"]
+  subgraph FLY["Fly.io — origin เดียวที่ผู้ใช้เห็น"]
     WEB["apps/web<br/>React SPA"]
     ADMAPP["apps/admin<br/>React SPA"]
-  end
-  subgraph FLY["Fly.io"]
     API["apps/api<br/>Hono + in-process jobs"]
   end
   DB[("PostgreSQL · Supabase<br/>EXCLUDE constraint")]
@@ -28,14 +26,14 @@ flowchart LR
   EMP --> WEB
   ADM --> ADMAPP
   FAC -.-> WEB
-  WEB -->|"rewrite /api"| API
-  ADMAPP -->|"rewrite /api"| API
+  WEB -->|"same-origin /api"| API
+  ADMAPP -->|"same-origin /api"| API
   API --> DB
   API --> SMTP
   SMTP --> MAIL
 ```
 
-เส้นทาง request ที่ผู้ใช้เห็นมี origin เดียว: Vercel เสิร์ฟ SPA สองชุดและ rewrite `/api` ไปยัง Fly ซึ่งต่อ Supabase PostgreSQL โดยตรง ไม่มี message queue หรือ worker service แยก; งานดูแลระบบใช้ GitHub Actions, SMTP relay และพื้นที่ backup ตามหัวข้อ 09
+เส้นทาง request ที่ผู้ใช้เห็นมี origin เดียว: Fly เสิร์ฟ employee SPA ที่ `/`, admin SPA ที่ `/admin/` และ Hono API ที่ `/api/` จาก Docker image เดียว แล้วต่อ Supabase PostgreSQL โดยตรง ไม่มี message queue หรือ worker service แยก; งานดูแลระบบใช้ GitHub Actions, SMTP relay และพื้นที่ backup ตามหัวข้อ 09
 
 ### ระบบโดยสรุป (System at a glance)
 
@@ -46,8 +44,8 @@ flowchart LR
 | :icon[calendar] กติกาจอง | **ใครกดก่อนได้ก่อน (first-come-first-served) — ไม่มีขั้นตอนอนุมัติ** · ขั้นละ **30 นาที** · ขั้นต่ำ **1 ชม.** · ล่วงหน้า **≤ 30 วัน** แบบ rolling |
 | :icon[qr] เช็กอิน | **สแกน QR ที่ป้ายหน้าห้องด้วยมือถือ** (ทางหลัก) หรือกดปุ่มในแอป · **T−15 → T+15** · ไม่มาแล้วปล่อยห้องอัตโนมัติ |
 | :icon[server] สถาปัตยกรรม | **3-tier modular monolith**: React SPA ×2 → Hono API + scheduler process เดียว → PostgreSQL; ไม่มี microservice, Redis, message broker หรือ worker service แยก (หัวข้อ 04) |
-| :icon[gear] Deployment stack | **Vercel** (web/admin + `/api` proxy) · **Fly.io** `sin` (API/jobs) · **Supabase PostgreSQL** `ap-southeast-1` · **GitHub Actions** (CI/migrate/deploy/backup) · **Cloudflare R2** (encrypted dumps) · SMTP relay ของ operator (หัวข้อ 04 และ 09) |
-| :icon[chart] สถานะ | ฟังก์ชันหลัก employee/admin, QR check-in, demo check-in guard และ initializer ส่งมอบแล้ว; configuration สำหรับ topology Vercel → Fly → Supabase อยู่ใน repo แต่ external provisioning/smoke ยังเป็น go-live gate · งานภายหลังแยกไว้ในหัวข้อ 08 |
+| :icon[gear] Deployment stack | **Fly.io** `sin` (web/admin/API/jobs ที่ `https://reserveflow-api.fly.dev`) · **Supabase PostgreSQL** `ap-southeast-1` · **GitHub Actions** (CI/migrate/deploy/backup) · **Cloudflare R2** (encrypted dumps) · SMTP relay ของ operator (หัวข้อ 04 และ 09) |
+| :icon[chart] สถานะ | ฟังก์ชันหลัก employee/admin, QR check-in, demo check-in guard และ initializer ส่งมอบแล้ว; configuration สำหรับ topology Fly → Supabase อยู่ใน repo แต่ authenticated smoke และ operational go-live gates ยังต้องมีหลักฐาน · งานภายหลังแยกไว้ในหัวข้อ 08 |
 
 > ข้อมูลตัวอย่างทั้งเล่ม (ชื่อคน, ตัวเลข utilization, อีเมล) เป็นข้อมูลสมมติ · ชุดเริ่มต้นจริงมีบัญชี credential 81 บัญชีตามรหัส `AU-001`–`AU-081` โดยไม่บันทึกรหัสผ่านไว้ในเอกสารนี้
 > ที่มาของเอกสาร การตัดสินใจที่ปิดแล้ว (`D-xx`) คำถามที่ปิดแล้ว (`Q-xx`) และผลการรีวิวฉบับก่อน อยู่ใน **หัวข้อ 11 · ภาคผนวก**
@@ -92,7 +90,7 @@ flowchart LR
 | **01 · ระบบทำอะไร** | บทบาทและสิทธิ์, หน้าจอทั้งหมด, ระยะการพัฒนา, นโยบายการจองแบบภาษาคน |
 | **02 · ความต้องการ** | FR-001..017, NFR-1..6, US-001..008, กฎธุรกิจ BR-01..13, lifecycle 5 สถานะ, permission matrix, notification matrix, RTM |
 | **03 · เส้นทางผู้ใช้** | FL-01..07 — จอง, เลื่อน/ยกเลิก, admin ยกเลิกให้พร้อมเหตุผล, จัดการผู้ใช้, วันประชุมและ QR หน้าห้อง, การจองพร้อมกัน, ประชุมส่วนตัว |
-| **04 · สถาปัตยกรรม** | topology Vercel · Fly.io · Supabase, เส้นทาง request ของการสร้างการจอง, ตาราง stack พร้อมเหตุผลและ runner-up, P-01..07, TR-01..03 |
+| **04 · สถาปัตยกรรม** | topology Fly.io · Supabase, เส้นทาง request ของการสร้างการจอง, ตาราง stack พร้อมเหตุผลและ runner-up, P-01..07, TR-01..03 |
 | **05 · โครงสร้างข้อมูล** | ERD, DDL เต็ม, EXCLUDE constraint A ตัวเดียว, index, SQL ของทุก transaction (T1–T6, H1), jobs, seed, settings, retention |
 | **06 · สัญญา API** | conventions C-01..16, visibility 3 ระดับ, error catalogue, endpoint ทุกกลุ่ม, worked examples, authorization matrix, client contract แบบเขียนมือ |
 | **07 · โครงสร้างโค้ด** | monorepo 3 apps + 3 packages, route-local schemas, domain services + transaction helpers, migrations และแนวทาง ownership ทีม 1–3 คน |

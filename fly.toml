@@ -1,6 +1,7 @@
-# ReserveFlow API — production. Deploy: flyctl deploy --remote-only --config fly.toml
-# Runtime secrets (fly secrets set KEY=value): DATABASE_URL, PUBLIC_BASE_URL,
-# BETTER_AUTH_SECRET, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM, MAIL_REPLY_TO.
+# ReserveFlow full stack — production. Deploy: flyctl deploy --remote-only --config fly.toml
+# One Fly origin serves employee `/`, admin `/admin/`, API `/api/`, and background jobs.
+# Runtime secrets (fly secrets set KEY=value): DATABASE_URL, BETTER_AUTH_SECRET,
+# SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM, MAIL_REPLY_TO.
 
 app = "reserveflow-api"
 primary_region = "sin"
@@ -11,6 +12,7 @@ primary_region = "sin"
 [env]
   NODE_ENV = "production"
   PORT = "3000"
+  PUBLIC_BASE_URL = "https://reserveflow-api.fly.dev"
   TRUST_PROXY = "true"
   WORKER_ENABLED = "true"
   LOG_LEVEL = "info"

@@ -11,7 +11,7 @@
 | Admin app | Dashboard, ปฏิทิน, การจอง, ห้อง/รูป/QR, ผู้ใช้/CSV, settings/วันหยุด, reports, email queue และ audit; ADMIN สลับ employee/admin mode ได้จาก sidebar |
 | Account provisioning | guarded initializer เป็นเส้นทางพร้อมใช้สำหรับบัญชี canonical; admin/backend invite/reset token และ outbox มีอยู่ แต่ final employee web ซ่อน `/set-password` และ `/forgot` จึงยังไม่เป็น flow end-to-end |
 | Data | PostgreSQL migrations `0000`–`0009`; EXCLUDE constraint กันจองซ้อน; initializer แบบ guarded สร้าง 3 ห้อง + 8 แผนก + พนักงาน 80 + admin 1 โดยไม่สร้าง booking/session/notification demo |
-| Delivery | repository มี config สำหรับ Vercel project เดียว (`/` + `/admin/`) ที่ rewrite `/api/*` ไป Fly `reserveflow-api`, Supabase PostgreSQL และ workflow migrate → Fly → readyz; การเชื่อม project/secrets จริงเป็นขั้น deploy นอก repository |
+| Delivery | repository มี Docker/Fly config สำหรับ app `reserveflow-api` ที่เสิร์ฟ employee `/`, admin `/admin/`, API `/api/` และ jobs จาก image เดียว พร้อม Supabase PostgreSQL และ workflow migrate → Fly → full-stack smoke; การเชื่อม project/secrets จริงเป็นขั้น deploy นอก repository |
 | Verification | CI ปัจจุบันมี lint, typecheck, Vitest บน PostgreSQL และ build; browser journeys/E2E เป็น manual checklist และ **ยังไม่** เป็น Playwright job ใน CI |
 
 > :icon[warn] การเรียกเวอร์ชันนี้ว่า final หมายถึง **functional baseline ใน repository** ไม่ใช่การรับรอง production readiness: secrets, SMTP จริง, backup restore drill, deployment health และ browser UAT ต้องตรวจใน environment ปลายทางก่อนเปิดใช้จริง
@@ -145,7 +145,7 @@ Reschedule **UI** (E7) ไปอยู่ T-046 ใน W4 — API อยู่ W
 | T-060 | Accessibility target เดิม: keyboard, visible focus, zoom/responsive, ไม่ใช้สีอย่างเดียว, reduced motion และฟอนต์ไทย | web/admin/qa | W2–W5 | L | final มี semantic/focus styles และ manual checklist แต่ **ไม่มี axe/Playwright required check**; ต้องรัน browser accessibility pass ก่อน production sign-off | NFR-6 (Accessibility), TC-A11Y-008 |
 | T-061 | Security target: headers, cookie flags, CSRF/origin checks, resource-hiding 404, rate limits สำหรับ route ที่มีจริง (login/booking/check-in/account actions), dependency scan และ log redaction | api/infra | W5 | M | final CI ไม่ได้มี Trivy/security job แยกและไม่มี forgot route; ใช้ unit/integration tests + production checklist ในหัวข้อ 09 | NFR-3 (Security), TC-SEC-021, TC-RATE-024 |
 | T-062 | Performance target เดิม: dataset 3 ปี, API p95 และ navigation budget | api/qa | T-025, T-063 | M | final ไม่มี k6/Playwright nightly หรือ performance report ที่ใช้เป็น release evidence; ต้องวัดใน isolated dataset ไม่ใช่ canonical demo DB ก่อน production sign-off | NFR-2 (Performance), TC-PERF-007 |
-| T-063 | Delivery configuration final: API Docker/Fly, Vercel SPA/deep-link + `/api/*` rewrite, Supabase bootstrap/migrations และ deploy workflow migrate → Fly → `/api/readyz`; backup/restore assets ตามหัวข้อ 09 | infra | T-003 | L | repository มี config แต่ **ไม่ใช่หลักฐานว่า Vercel/Fly/Supabase secrets, staging, backup upload หรือ restore drill ทำสำเร็จแล้ว**; ต้องตรวจ external environment ก่อน go-live | TC-BK-022, TC-MIG-025, TC-OPS-026 |
+| T-063 | Delivery configuration final: Docker/Fly image เดียวสำหรับ employee/admin/API/jobs, Supabase bootstrap/migrations และ deploy workflow migrate → Fly → ตรวจ `/api/readyz`, `/`, `/admin/`; backup/restore assets ตามหัวข้อ 09 | infra | T-003 | L | repository มี config แต่ **ไม่ใช่หลักฐานว่า Fly/Supabase secrets, staging, backup upload หรือ restore drill ทำสำเร็จแล้ว**; ต้องตรวจ external environment ก่อน go-live | TC-BK-022, TC-MIG-025, TC-OPS-026 |
 | T-064 | Observability final: structured pino logs, `/api/healthz`, `/api/readyz`, Fly health check, scheduler health และหน้า admin email queue/retry; **ไม่มี Sentry SDK, sourcemaps หรือ cron monitors** | api/infra/admin | T-040, T-063 | M | integration tests ครอบคลุม readiness/queue; external uptime/alert routing ยังต้องตั้งและทดสอบใน deployment | NFR-5 (Reliability), TC-OPS-026 |
 | T-065 | Thai copy review: error catalogue (ข้อความ 409 จาก deck ตรงตัว), subject email, ข้อความว่าง/ผิดพลาด, glossary ในภาคผนวก จ ให้ตรงกับ UI; ไม่มีคำลงท้ายสุภาพใน system voice | web/admin | W5 | S | ไม่พบ hard-coded date format นอก `formatDate()` (ตรวจด้วย script); reviewer ธุรกิจ 1 คนอ่านผ่าน | V-09 |
 | T-066 | เอกสาร: runbooks (deploy, rollback, restore, rotate secrets, incidents), คู่มือ admin + quick guide พนักงาน (ไทย, 1 หน้า), กรอก RTM Status + test report จาก CI artifacts | qa | W5 | M | ไฟล์ใน `docs/` ตามหัวข้อ 07; RTM ทุกแถว Must = Done พร้อมลิงก์ TC | R-02, V-08 |
@@ -203,12 +203,12 @@ W8 ไม่ใช่ buffer งานพัฒนา (C1-06)
 
 ### 8.5 ทะเบียนความเสี่ยง (Risk register)
 
-สามข้อที่ต้องเฝ้าจริง: **RK-08** ทีม 2 คนไม่พอกับปฏิทิน 8 สัปดาห์ (โอกาสสูงถ้า staffing ไม่ตัดสินใน W0) · **RK-03** relay อีเมลของบริษัทใช้ไม่ได้ → FR-009 ตก UAT · **RK-01** บัญชี Fly/Supabase หรือโดเมนบริษัทไม่พร้อมจนไม่มี staging/โดเมนจริงให้ UAT — ทั้งสามมี owner และเส้นตายอยู่ใน W0; ส่วนข้อที่ลูกค้ารับไว้แล้วโดยชัดแจ้งคือ **RK-11** (Vercel Hobby ToS — D-31)
+สามข้อที่ต้องเฝ้าจริง: **RK-08** ทีม 2 คนไม่พอกับปฏิทิน 8 สัปดาห์ (โอกาสสูงถ้า staffing ไม่ตัดสินใน W0) · **RK-03** relay อีเมลของบริษัทใช้ไม่ได้ → FR-009 ตก UAT · **RK-01** บัญชี Fly/Supabase หรือโดเมนบริษัทไม่พร้อมจนไม่มี staging/โดเมนจริงให้ UAT — ทั้งสามมี owner และเส้นตายอยู่ใน W0
 
-:::details ทะเบียนความเสี่ยงฉบับเต็ม RK-01…RK-11 (11 ข้อ)
+:::details ทะเบียนความเสี่ยงฉบับเต็ม RK-01…RK-10 (10 ข้อ)
 | ID | ความเสี่ยง | ผลกระทบ | โอกาส | การรับมือ | เจ้าของ |
 |---|---|---|---|---|---|
-| RK-01 | บัญชี managed ทั้งสาม (Fly/Supabase/Vercel) หรือโดเมน/DNS บริษัทไม่พร้อม → staging (`reserveflow-staging.fly.dev`) ไม่เกิดใน W1 / prod ไม่มีโดเมนจริงให้ UAT + go-live | สูง | ต่ำ | เปิดบัญชี + สร้าง staging ตั้งแต่ W0–W1 (จ่ายจริงมีแค่ Fly ~$3–4/เดือน — ไม่ติดจัดซื้อ); staging อยู่บน `*.fly.dev` จึงไม่รอโดเมนบริษัท; ขอโดเมน/DNS จาก IT ใน W0 (T-005); ทางถอย: runtime = 1 Dockerfile + 1 Postgres URL → กลับแผน VM (ADR-008) ได้ในครึ่งวัน | ธุรกิจ / lead |
+| RK-01 | บัญชี managed ทั้งสอง (Fly/Supabase) หรือโดเมน/DNS บริษัทไม่พร้อม → staging (`reserveflow-staging.fly.dev`) ไม่เกิดใน W1 / prod ไม่มี canonical origin ให้ UAT + go-live | สูง | ต่ำ | เปิดบัญชี + สร้าง staging ตั้งแต่ W0–W1; staging และ prod ใช้ `*.fly.dev` ได้จึงไม่รอโดเมนบริษัท; ถ้าจะใช้ custom domain ให้ขอ DNS จาก IT ใน W0 (T-005); ทางถอย: runtime = 1 Dockerfile + 1 Postgres URL → กลับแผน VM (ADR-008) ได้ในครึ่งวัน | ธุรกิจ / lead |
 | RK-02 | better-auth ไม่รองรับ login ด้วย `employee_code` หรือ admin plugin ไม่ตรงที่ต้องการ | กลาง | กลาง | spike แนวดิ่ง T-008 ใน W0 (gate ก่อน schema freeze); ถ้าไม่ผ่าน → ตัดสินใช้ hand-rolled sessions (~150 บรรทัด, schema `sessions` เดิม) **ตั้งแต่ W0** ไม่ใช่ fallback กลาง W1 | lead |
 | RK-03 | SMTP relay บริษัทไม่ได้ (M365 ปิด SMTP AUTH / ต้อง connector), ส่งช้า, ตกสแปม → FR-009 (Must) ไม่ผ่าน UAT | สูง | กลาง | **T-009 ใน W0 ส่งจริง 1 ฉบับจากเส้นทางที่ IT อนุญาต** (gate); ไม่ผ่าน → เปิด transport สำรอง Postmark/SES + ขอ DNS ทันที (เปลี่ยน config 1 ที่ T-040); T-073 ตรวจเต็ม 3 client ใน W7; นิยาม SLO = relay accepted + ดู bounce ที่กล่อง `MAIL_FROM` ต้องได้การยอมรับเป็นลายลักษณ์อักษร (ภาคผนวก ซ) | lead |
 | RK-04 | ธุรกิจยืนยัน login 3 ช่อง / self-registration (Q-09) หลัง W1 | ต่ำ | ต่ำ | ปิดใน T-005; mobile = equality check เพิ่ม 1 ชม.; self-registration ปฏิเสธ (ขัด R-20) | lead |
@@ -218,21 +218,20 @@ W8 ไม่ใช่ buffer งานพัฒนา (C1-06)
 | RK-08 | ทีม 2 คน = capacity สุทธิต่ำกว่างาน ~25 % (C1-06); คนหนึ่งป่วย 1 สัปดาห์ | สูง | สูง (ถ้า 2 คน) | ตัดสินใจ staffing ใน W0 (§8.8): 3 คน หรือ 2 คน + ปฏิทิน ~10–11 สัปดาห์ หรือ 2 คน + cut list อนุมัติล่วงหน้า; slip list ตัดตามลำดับ; W8 = go-live/hypercare ไม่ใช่ buffer งานพัฒนา | lead |
 | RK-09 | บั๊กเวลา/ภาษา: พ.ศ. vs ค.ศ., UTC vs Asia/Bangkok ข้ามวัน หรือ date field ทำงานต่างกัน | กลาง | กลาง | shared `ThaiDatePickerField` lazy-load `@daypicker/buddhist`; UI เป็น พ.ศ. แต่ URL/API เป็น Gregorian; `formatDate()` จุดเดียว + unit test ขอบเวลา; booking grid ยังคงเป็น custom component | dev B |
 | RK-10 | sweep/outbox บั๊กส่ง email ซ้ำหรือถล่ม (reminder ทุกนาที) | กลาง | ต่ำ | unique `notifications_dedupe` ใน outbox + Message-ID คงที่ต่อแถว, local ใช้ Mailpit, kill switch = `WORKER_ENABLED=false`, ตรวจ failed queue/log จากหน้า admin; external alert routing เป็นงานก่อน go-live | lead |
-| RK-11 | **Vercel Hobby ห้ามใช้เชิงพาณิชย์** — fair-use guidelines (2026-07-29) นับ "a paid employee or consultant writing the code" เป็น commercial; internal tool นี้เข้าข่ายตรง ๆ; ผลบังคับที่เป็นไปได้ = pause account/deployment → FE หายจนกว่าจะย้าย (API/DB ไม่กระทบ) | กลาง | กลาง | **ลูกค้ารับความเสี่ยงนี้อย่างชัดแจ้งเมื่อ 2026-08-24 หลังได้รับแจ้งครบถ้วน (D-31; หัวข้อ 09 §9.5)**; ทางถอยพร้อมใช้เพราะ image ของ Fly ถือ statics ทั้งสอง SPA อยู่แล้ว: ชี้ DNS ไป Fly ให้เสิร์ฟเอง / ย้าย Cloudflare Pages (ฟรี, อนุญาต commercial) / อัปเกรด Vercel Pro $20/เดือน — ทุกทางไม่แตะสถาปัตยกรรม; ทบทวน ToS รายไตรมาสตามหัวข้อ 09 §9.9 | ธุรกิจ / lead |
 :::
 
 ### 8.6 เกณฑ์ปล่อยรุ่น, go-live และ rollback
 
-ด่านปล่อยรุ่นที่อ้างใน ledger เดิมเป็นเป้าหมาย; สำหรับ repository ปัจจุบันให้ใช้ checklist as-built ในหัวข้อ 09: CI 4 jobs ผ่าน, migration สำเร็จ, Fly `/api/readyz` ตอบ 200, Vercel สอง SPA เปิด deep link ได้, backup/restore และ browser UAT มีหลักฐาน
+ด่านปล่อยรุ่นที่อ้างใน ledger เดิมเป็นเป้าหมาย; สำหรับ repository ปัจจุบันให้ใช้ checklist as-built ในหัวข้อ 09: CI 4 jobs ผ่าน, migration สำเร็จ, Fly `/api/readyz` ตอบ 200, employee/admin SPA เปิดหน้าแรกและ deep link ได้บน Fly origin เดียว, backup/restore และ browser UAT มีหลักฐาน
 
-**กติกาเมื่อ prod มีปัญหา**: :icon[warn] fix-forward สำหรับ migration แบบ backward-compatible; rollback API ใช้ image/commit ที่ทราบว่าดีและ frontend ใช้ Vercel rollback; rollback schema ทำเฉพาะตาม runbook หลังมี backup ที่ทดสอบ restore แล้ว ทุกเหตุการณ์ต้องมี incident note
+**กติกาเมื่อ prod มีปัญหา**: :icon[warn] fix-forward สำหรับ migration แบบ backward-compatible; rollback employee/admin/API/jobs พร้อมกันด้วย Fly image/commit ที่ทราบว่าดี; rollback schema ทำเฉพาะตาม runbook หลังมี backup ที่ทดสอบ restore แล้ว ทุกเหตุการณ์ต้องมี incident note
 
 :::details Checklist วัน go-live (วัน D)
 ```
 [ ] D-1  CI 4 jobs เขียวบน sha ที่จะปล่อย; ตรวจ migration แบบ backward-compatible และประกาศหน้าต่าง deploy
 [ ] D-1  รัน backup workflow และพิสูจน์ว่า artifact เข้ารหัสถูกอัปโหลด; restore drill ล่าสุดยังอยู่ใน SLA
 [ ] D    deploy workflow: migrate ผ่าน session pooler → flyctl deploy → /api/readyz 200
-[ ] D    ตรวจ Vercel deployment เดียว: /, /admin/, deep links และ /api rewrite; ไม่มี cache บน API
+[ ] D    ตรวจ Fly origin เดียว: /, /admin/, deep links และ /api/readyz; ไม่มี cache บน API
 [ ] D    admin ตรวจ 3 ห้อง/81 users/settings โดยไม่ใช้ E2E ที่สร้าง booking/user ทิ้งใน canonical DB
 [ ] D    ทดสอบ browser flow บนข้อมูลทดสอบที่แยกออก: login → จอง → conflict/reschedule → QR check-in → cancel
 [ ] D+1..5 ดู structured logs, failed email queue, pending age, failed logins และ backup heartbeat
