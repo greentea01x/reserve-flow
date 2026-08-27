@@ -36,7 +36,9 @@ conversation updates its existing entry instead of creating duplicates.
   `greentea01x` for future GitHub repository ownership references. The user
   subsequently asked to split the imported project into several clear,
   buildable commits, then requested a deep legacy-identity audit before pushing
-  `main` to `https://github.com/greentea01x/reserve-flow.git`.
+  `main` to `https://github.com/greentea01x/reserve-flow.git`. After HTTPS
+  credentials were unavailable, the user configured GitHub SSH access and
+  requested another push attempt.
 - Decisions and actions:
   - Treated the supplied local directory as the canonical source after GitHub
     authentication prevented cloning the linked repository.
@@ -56,17 +58,22 @@ conversation updates its existing entry instead of creating duplicates.
     author/committer metadata, ref names, reflogs, local Git configuration, and
     the latest disclosure/commit; no legacy account-handle reference remained.
   - Confirmed the requested GitHub repository contained no refs before adding
-    it as `origin` and performing a normal first push of `main`.
+    it as `origin`. The first HTTPS push failed before creating a remote ref;
+    after GitHub identified the new SSH key as `greentea01x`, changed `origin`
+    to `git@github.com:greentea01x/reserve-flow.git` and performed a normal
+    first push of `main`.
 - Code/documentation changes: Copied the supplied project without changing its
   application source, dependencies, or configuration. Added this required
   session entry to `docs/AI-USAGE.md`; `CHANGELOG.md` was not changed because
   there was no product-facing change relative to the supplied source.
 - Data/external-state changes: Initialized a new local Git repository in
   `reserve-flow`, then rewrote its single initial commit into six commits on
-  `main`. Configured `origin` as
-  `https://github.com/greentea01x/reserve-flow.git` and pushed the six-commit
-  `main` history with upstream tracking. No deployment, database, or other
-  external state was created or changed.
+  `main`. Configured the final `origin` as
+  `git@github.com:greentea01x/reserve-flow.git`, pushed the six dependency-ordered
+  commits followed by this disclosure update, and enabled upstream tracking.
+  Installed GitHub CLI 2.98.0 through Homebrew while resolving authentication;
+  its incomplete web device flow was canceled, and the push used SSH instead.
+  No deployment, database, or other external state was created or changed.
 - Verification: Checksum-aware copy comparison matched all source file contents
   except this intentionally updated disclosure file. The destination contained
   393 files before Git metadata; no file exceeded 20 MB, and a targeted scan
@@ -87,13 +94,15 @@ conversation updates its existing entry instead of creating duplicates.
 - AI/tools/sources: OpenAI Codex coordinating agent; shell, rsync, Git, and the
   user-supplied local project directory; Node 24.20.0, pnpm 10.27.0, TypeScript,
   Vite, and Turborepo for isolated builds; GitHub for the empty-repository check
-  and final push. Earlier GitHub HTTPS and SSH source-clone attempts failed
-  authentication and did not change remote state. No subagents were used.
-- Human review / limitations: `origin/main` now contains the six-commit history
-  under the `greentea01x` repository. Commit authorship records who created this
-  new history; it does not imply sole authorship of the copied application
-  contents. No deployment or application test was performed as part of the
-  repository publication.
+  and final push; Homebrew and GitHub CLI 2.98.0 for the attempted HTTPS web
+  authentication, and OpenSSH for the successful publication. Earlier GitHub
+  HTTPS and SSH source-clone attempts failed authentication and did not change
+  remote state. No subagents were used.
+- Human review / limitations: `origin/main` now contains the dependency-ordered
+  history and this publication disclosure under the `greentea01x` repository.
+  Commit authorship records who created this new history; it does not imply sole
+  authorship of the copied application contents. No deployment or application
+  test was performed as part of the repository publication.
 
 ## 2026-08-26T14:50:47+07:00 — Deploy diagnosis, demo reset, and final spec
 
