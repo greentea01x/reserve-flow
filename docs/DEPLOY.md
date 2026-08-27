@@ -217,7 +217,9 @@ but backup secrets must remain available to `backup.yml`, which declares no envi
 
 Keep the `age` private key offline in a password manager. Backups do not need it; restores do.
 
-Pushing `main` runs [`deploy.yml`](../.github/workflows/deploy.yml):
+Automatic deployment from pushes is disabled for now. In GitHub, open
+**Actions → Deploy → Run workflow** when a production deployment is intended. The manual
+[`deploy.yml`](../.github/workflows/deploy.yml) run will:
 
 1. install the frozen dependency graph;
 2. migrate the database;

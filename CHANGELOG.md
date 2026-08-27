@@ -30,6 +30,8 @@ the repository owner explicitly creates a release.
 
 ### Changed
 
+- Made the production deployment workflow manual-only for now, so pushes still
+  run normal CI without attempting a Fly.io deployment.
 - Consolidated production delivery on one Fly.io app at
   `https://reserveflow-api.fly.dev`, serving the employee site, admin site, API,
   and background jobs from one image; removed the previous split-platform

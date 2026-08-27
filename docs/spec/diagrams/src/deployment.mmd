@@ -8,7 +8,7 @@ flowchart TB
   subgraph SUPA["Supabase PostgreSQL · production target"]
     PG[("PostgreSQL + btree_gist")]
   end
-  REPO -->|"PR · push main · schedule"| GHA["GitHub Actions<br/>CI · migrate · deploy · backup"]
+  REPO -->|"PR/push main = CI · manual deploy · backup schedule"| GHA["GitHub Actions<br/>CI · migrate · deploy · backup"]
   BR["เบราว์เซอร์<br/>เห็น origin เดียว · cookie __Host-sid ใบเดียว"] -->|"HTTPS / · /admin/"| STATIC
   BR -->|"HTTPS /api/ · same-origin · no-store"| API
   API -->|"IPv6 ตรง :5432 · verify-full · role rf_app"| PG

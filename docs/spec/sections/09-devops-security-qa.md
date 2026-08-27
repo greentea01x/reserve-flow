@@ -108,7 +108,7 @@ Runtime/deploy secrets จริงมี: `BETTER_AUTH_SECRET`, รหัส `r
 
 ### 9.4 CI/CD (GitHub Actions — `.github/workflows/ci.yml`, `deploy.yml`)
 
-Workflow ที่ commit อยู่ใน repo เป็นความจริงของ automation ปัจจุบัน: CI มี 4 jobs และ deploy production ทำ migration → Fly full-stack image → ตรวจ API/employee/admin. รายการทดสอบที่ยังไม่ผูกกับ workflow ต้องระบุเป็น manual/future gate ไม่ใช่อธิบายว่า CI ทำแล้ว
+Workflow ที่ commit อยู่ใน repo เป็นความจริงของ automation ปัจจุบัน: CI มี 4 jobs บน PR/push ส่วน production deploy ถูกปิดจาก push ไว้ชั่วคราวและรันได้ด้วย `workflow_dispatch` เท่านั้น; manual deploy ทำ migration → Fly full-stack image → ตรวจ API/employee/admin. รายการทดสอบที่ยังไม่ผูกกับ workflow ต้องระบุเป็น manual/future gate ไม่ใช่อธิบายว่า CI ทำแล้ว
 
 :::details ดูตาราง CI/CD, กติกา migration และ rollback
 | Stage | เมื่อไร | ทำอะไร | Required check |
@@ -117,7 +117,7 @@ Workflow ที่ commit อยู่ใน repo เป็นความจร
 | `typecheck` (`ci.yml`) | PR และ push `main` | frozen install → `pnpm typecheck` | ตาม branch protection |
 | `test` (`ci.yml`) | PR และ push `main` | PostgreSQL 18 service → frozen install → `pnpm test` ด้วย DB แยกของ run | ตาม branch protection |
 | `build` (`ci.yml`) | PR และ push `main` | frozen install → `pnpm build` | ตาม branch protection |
-| `deploy` (`deploy.yml`) | push `main` หรือ manual `workflow_dispatch` | job ใช้ GitHub Environment `production`; frozen install → `pnpm db:migrate` ด้วย `DATABASE_URL_MIGRATE` → `flyctl deploy --remote-only --config fly.toml` → ตรวจ `/api/readyz`, `/`, `/admin/` | migration/deploy/full-stack smoke ล้มแล้ว job ล้ม |
+| `deploy` (`deploy.yml`) | manual `workflow_dispatch` เท่านั้น; push trigger ปิดไว้ชั่วคราว | job ใช้ GitHub Environment `production`; frozen install → `pnpm db:migrate` ด้วย `DATABASE_URL_MIGRATE` → `flyctl deploy --remote-only --config fly.toml` → ตรวจ `/api/readyz`, `/`, `/admin/` | migration/deploy/full-stack smoke ล้มแล้ว job ล้ม |
 | `backup.yml` | schedule/manual แยกจาก deploy | `pg_dump` → age → R2 + heartbeat และ weekly keep-alive | ไม่ใช่ pre-deploy step |
 
 **ยังไม่ automated ใน workflow ปัจจุบัน:** Playwright/axe smoke, migration drift check, HTTP race/k6, dependency audit/Trivy, deploy staging, image SHA reuse, pre-deploy dump และ `@prod-safe`. รายการเหล่านี้ยังเป็น target/manual release evidence ได้ แต่ห้ามนับว่าเป็น GitHub required check จนมี job จริง. Branch protection และจำนวน approver เป็น external GitHub settings จึงต้องตรวจใน repository settings แยกจากไฟล์ YAML
@@ -321,7 +321,7 @@ repo มี workflow backup เข้ารหัสและรายการ�
 :::details ดูรายการ runbook และสถานะ (7 รายการ)
 | Runbook | ขั้นตอน |
 |---|---|
-| Deploy prod | push `main` หรือกด `workflow_dispatch` → GitHub Environment `production` ใช้กฎ approval เท่าที่ตั้งไว้ภายนอก repo → `deploy.yml` ทำ `pnpm db:migrate` ผ่าน session pooler → `flyctl deploy --remote-only --config fly.toml` → ตรวจ `/api/readyz`, `/`, `/admin/`. ไม่มี pre-dump, staging deploy หรือ Playwright ใน workflow นี้ |
+| Deploy prod | เปิด Actions → Deploy → Run workflow (`workflow_dispatch`) → GitHub Environment `production` ใช้กฎ approval เท่าที่ตั้งไว้ภายนอก repo → `deploy.yml` ทำ `pnpm db:migrate` ผ่าน session pooler → `flyctl deploy --remote-only --config fly.toml` → ตรวจ `/api/readyz`, `/`, `/admin/`. Push trigger ปิดไว้ชั่วคราว; ไม่มี pre-dump, staging deploy หรือ Playwright ใน workflow นี้ |
 | Rollback | ดู 9.4: `fly releases` → deploy image/release เดิมเพื่อย้อน employee/admin/API/jobs พร้อมกัน. Schema ใช้ fix-forward เป็นหลัก; data corruption จึง `fly scale count 0` → restore backup ล่าสุดจาก `backup.yml` **กลับเข้า Supabase prod ผ่าน session pooler** (ผู้อนุมัติตาม incident policy, ไม่ scrub) → `fly scale count 1` → แจ้งช่วงข้อมูลหลัง backup ที่อาจหายตาม RPO |
 | **Resume โปรเจกต์ Supabase ที่ถูก pause** | อาการ: `/api/readyz` 503 + ต่อ DB ไม่ได้ + อีเมลแจ้งจาก Supabase (free จะ pause หลัง inactive 7 วัน — ตามปกติเกิดไม่ได้เพราะ sweep ยิงทุก 60 วินาทีและมี weekly `SELECT 1` สำรอง; จะเกิดก็ต่อเมื่อ Fly ล่มยาวระดับสัปดาห์พร้อมกัน) → แก้: Supabase dashboard → เลือกโปรเจกต์ → กด **Resume** (ปุ่ม manual — ไม่มี API ให้เรียกจากฝั่งเรา) → รอ ~1–2 นาที → `/api/readyz` เขียว → ตรวจว่า `last_sweep_at` เดินต่อ; คนที่รู้ตำแหน่งปุ่มต้องมี ≥ 2 ชื่อ |
 | Restore drill (quarterly; ครั้งแรกก่อน go-live) | **สถานะ: ยังไม่พร้อมรัน.** ต้องเพิ่ม isolated local database, `infra/scrub-drill.sql`, `infra/drill-assert.sql`, identity assertions, cleanup และผลลัพธ์ที่บันทึกเวลา. เมื่อมีแล้วจึง restore archive จริง → scrub/assert ก่อนเปิด service → ตรวจ schema/constraints/count → ทำลาย drill DB. ห้ามใช้ staging/canonical launch DB และห้ามนับ `pg_restore --list` เป็น restore proof |

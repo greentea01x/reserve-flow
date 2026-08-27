@@ -41,7 +41,8 @@ conversation updates its existing entry instead of creating duplicates.
   requested another push attempt. The same conversation then asked why active
   Vercel deployment instructions remained, clarified that the employee site,
   admin site, and API all deploy only on Fly.io, and supplied
-  `https://reserveflow-api.fly.dev` as the canonical production origin.
+  `https://reserveflow-api.fly.dev` as the canonical production origin. After
+  seeing the failing deploy check, the user asked to disable deploy CI for now.
 - Decisions and actions:
   - Treated the supplied local directory as the canonical source after GitHub
     authentication prevented cloning the linked repository.
@@ -79,6 +80,9 @@ conversation updates its existing entry instead of creating duplicates.
   - Corrected two invalid documentation-builder package pins discovered during
     regeneration, ignored the documented local virtual environment, and rebuilt
     the published HTML and three affected SVG diagrams from canonical sources.
+  - Kept normal lint/typecheck/test/build CI on PRs and pushes, but changed the
+    production deploy workflow to `workflow_dispatch` only. Updated the runbook
+    and canonical specification so deployment is explicitly manual for now.
 - Code/documentation changes: Imported the supplied project unchanged for the
   fresh repository, then updated `.env.example`, `.github/workflows/deploy.yml`,
   `.gitignore`, `CHANGELOG.md`, `README.md`, `package.json`, `fly.toml`,
@@ -93,11 +97,14 @@ conversation updates its existing entry instead of creating duplicates.
   commits followed by this disclosure update, and enabled upstream tracking.
   Installed GitHub CLI 2.98.0 through Homebrew while resolving authentication;
   its incomplete web device flow was canceled, and the push used SSH instead.
-  The Fly-only cleanup was committed locally but was not pushed, so it did not
-  trigger the production workflow. Read-only HTTP checks were made against the
-  existing Fly deployment; no deployment, database, or other external state was
-  created or changed. Temporary build dependencies were installed in the
-  ignored documentation virtual environment and `/private/tmp` only.
+  The Fly-only cleanup and the separate manual-deploy commit were pushed to
+  `origin/main`. Because the pushed workflow revision has no `push` trigger, the
+  publication did not request a production deployment; future deployments
+  require an explicit Actions `Run workflow` action. Read-only HTTP checks were
+  made against the existing Fly deployment; no deployment, database, or other
+  external state was created or changed. Temporary build dependencies were
+  installed in the ignored documentation virtual environment and `/private/tmp`
+  only.
 - Verification: Checksum-aware copy comparison matched all source file contents
   except this intentionally updated disclosure file. The destination contained
   393 files before Git metadata; no file exceeded 20 MB, and a targeted scan
@@ -124,6 +131,9 @@ conversation updates its existing entry instead of creating duplicates.
   Live read-only checks returned 200 for `/`, `/admin/`, and `/api/readyz` at
   `https://reserveflow-api.fly.dev`. Application tests were not rerun because
   runtime behavior was unchanged; the edits to application files are comments.
+  The revised workflow parsed as YAML with `workflow_dispatch` as its only
+  deploy trigger; the regenerated spec reported `CHECK CLEAN`, and the remote
+  `main` ref matched the final local commit after publication.
 - AI/tools/sources: OpenAI Codex coordinating agent; shell, rsync, Git, and the
   user-supplied local project directory; Node 24.20.0, pnpm 10.27.0, TypeScript,
   Vite, Turborepo, Python/Markdown, Mermaid, and headless Chrome for builds;
@@ -141,8 +151,9 @@ conversation updates its existing entry instead of creating duplicates.
   metadata in `pnpm-lock.yaml`, and factual archived research/review/disclosure
   history. The live public routes are reachable, but authenticated browser smoke,
   production secrets/CA validation, SMTP delivery, and restore drill remain
-  go-live gates. The Fly-only commit remains local pending an explicit push,
-  because pushing `main` can trigger the production deployment workflow.
+  go-live gates. Production deployment is intentionally manual-only until the
+  repository owner restores a push trigger after its secrets and gates are
+  ready.
 
 ## 2026-08-26T14:50:47+07:00 — Deploy diagnosis, demo reset, and final spec
 

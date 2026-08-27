@@ -1,5 +1,5 @@
-# Production deploy: migrate, then deploy one Fly image containing employee, admin, API,
-# and background jobs. The single image makes the release atomic after the migration step.
+# Manual production deploy: migrate, then deploy one Fly image containing employee, admin,
+# API, and background jobs. Automatic deploys from pushes are intentionally disabled for now.
 #
 # Required secrets (repository or `production` environment):
 #   FLY_API_TOKEN          fly tokens create deploy --app reserveflow-api
@@ -9,8 +9,6 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
