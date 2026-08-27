@@ -9533,10 +9533,10 @@ expect(calendarItems(room.id, slot)).toHaveLength(1);</pre></div>
 <tr>
 <td class="nw">D-31</td>
 <td>สถาปัตยกรรม deploy (ประวัติ)</td>
-<td><strong>Supabase free (<code>ap-southeast-1</code>) + Fly.io <code>sin</code> (API + worker) + Vercel Hobby (สอง SPA + rewrite <code>/api</code> → Fly)</strong> แทน VM เดียว + compose</td>
+<td>แยก frontend ออกจาก Fly API/worker เป็นคนละ deployment boundary</td>
 <td>ลดภาระ OS/DBA และคง worker แบบ always-on</td>
 <td><strong>แทนที่โดย D-33 (2026-08-27)</strong></td>
-<td>เก็บเป็นประวัติการตัดสินใจเท่านั้น; ห้ามใช้เป็น deployment/runbook ปัจจุบัน</td>
+<td>เก็บเฉพาะสาระของ decision เดิมโดยไม่แสดง provider ที่เลิกใช้; ห้ามใช้เป็น deployment/runbook ปัจจุบัน</td>
 </tr>
 <tr>
 <td class="nw">D-32</td>
@@ -9552,7 +9552,7 @@ expect(calendarItems(room.id, slot)).toHaveLength(1);</pre></div>
 <td><strong>Supabase PostgreSQL + Fly.io app เดียวที่ <code>https://reserveflow-api.fly.dev</code></strong>; Docker image เดียวเสิร์ฟ employee <code>/</code>, admin <code>/admin/</code>, API <code>/api/</code> และรัน jobs; compose ใช้ local dev เท่านั้น; backup ยังเป็น <code>pg_dump \| age</code> → R2</td>
 <td>ผู้ใช้ยืนยันว่า production ใช้ Fly.io เท่านั้นสำหรับทั้งสองเว็บไซต์และ API; image/runtime รองรับ topology นี้อยู่แล้ว จึงลด platform และ release boundary หนึ่งชั้น</td>
 <td><span class="st done">ตัดสินใจแล้ว</span> (2026-08-27)</td>
-<td>แทนที่ D-31; ลบ <code>vercel.json</code>/<code>build:vercel</code>; deploy workflow ปล่อย full stack พร้อมกัน; <code>PUBLIC_BASE_URL</code> = canonical Fly origin</td>
+<td>แทนที่ D-31 และยกเลิก split-platform build/deploy path; deploy workflow ปล่อย full stack พร้อมกัน; <code>PUBLIC_BASE_URL</code> = canonical Fly origin</td>
 </tr>
 </tbody>
 </table>

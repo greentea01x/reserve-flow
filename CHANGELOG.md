@@ -63,6 +63,9 @@ the repository owner explicitly creates a release.
 
 ### Fixed
 
+- Removed the retired frontend provider's name and obsolete configuration names
+  from the published product specification while retaining a generic historical
+  decision marker.
 - Corrected the documentation builder's invalid Markdown package pins so the
   published specification can be reproduced from its requirements file.
 - Removed the duplicated textual plus sign from the new-booking CTA while

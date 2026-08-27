@@ -43,6 +43,8 @@ conversation updates its existing entry instead of creating duplicates.
   admin site, and API all deploy only on Fly.io, and supplied
   `https://reserveflow-api.fly.dev` as the canonical production origin. After
   seeing the failing deploy check, the user asked to disable deploy CI for now.
+  The user then flagged that the retired provider still appeared inside the
+  generated specification and asked why it remained.
 - Decisions and actions:
   - Treated the supplied local directory as the canonical source after GitHub
     authentication prevented cloning the linked repository.
@@ -73,10 +75,11 @@ conversation updates its existing entry instead of creating duplicates.
     user-supplied canonical origin. Removed the split-platform configuration and
     build script, made the deploy workflow verify all three route families, and
     rewrote the production runbook and active architecture/operations sources.
-  - Preserved the superseded hybrid decision as explicitly historical D-31 and
-    added D-33 as the current Fly-only decision instead of rewriting decision
-    history. Archived research/review material and prior disclosure entries
-    were likewise left factual and append-only.
+  - Initially preserved provider-specific detail in superseded decision D-31;
+    after the user flagged its appearance in the published spec, reduced D-31
+    to a provider-neutral historical marker and removed obsolete configuration
+    filenames from D-33. Archived research/review material and prior disclosure
+    entries remain factual and append-only.
   - Corrected two invalid documentation-builder package pins discovered during
     regeneration, ignored the documented local virtual environment, and rebuilt
     the published HTML and three affected SVG diagrams from canonical sources.
@@ -97,14 +100,14 @@ conversation updates its existing entry instead of creating duplicates.
   commits followed by this disclosure update, and enabled upstream tracking.
   Installed GitHub CLI 2.98.0 through Homebrew while resolving authentication;
   its incomplete web device flow was canceled, and the push used SSH instead.
-  The Fly-only cleanup and the separate manual-deploy commit were pushed to
-  `origin/main`. Because the pushed workflow revision has no `push` trigger, the
-  publication did not request a production deployment; future deployments
-  require an explicit Actions `Run workflow` action. Read-only HTTP checks were
-  made against the existing Fly deployment; no deployment, database, or other
-  external state was created or changed. Temporary build dependencies were
-  installed in the ignored documentation virtual environment and `/private/tmp`
-  only.
+  The Fly-only cleanup, separate manual-deploy commit, and specification cleanup
+  commit were pushed to `origin/main`. Because the pushed workflow revision has
+  no `push` trigger, publication did not request a production deployment; future
+  deployments require an explicit Actions `Run workflow` action. Read-only HTTP
+  checks were made against the existing Fly deployment; no deployment, database,
+  or other external state was created or changed. Temporary build dependencies
+  were installed in the ignored documentation virtual environment and
+  `/private/tmp` only.
 - Verification: Checksum-aware copy comparison matched all source file contents
   except this intentionally updated disclosure file. The destination contained
   393 files before Git metadata; no file exceeded 20 MB, and a targeted scan
@@ -133,7 +136,9 @@ conversation updates its existing entry instead of creating duplicates.
   runtime behavior was unchanged; the edits to application files are comments.
   The revised workflow parsed as YAML with `workflow_dispatch` as its only
   deploy trigger; the regenerated spec reported `CHECK CLEAN`, and the remote
-  `main` ref matched the final local commit after publication.
+  `main` ref matched the final local commit after publication. A case-insensitive
+  scan of canonical `docs/spec/` sources and both generated specification HTML
+  artifacts found no retired-provider or obsolete build-script reference.
 - AI/tools/sources: OpenAI Codex coordinating agent; shell, rsync, Git, and the
   user-supplied local project directory; Node 24.20.0, pnpm 10.27.0, TypeScript,
   Vite, Turborepo, Python/Markdown, Mermaid, and headless Chrome for builds;
@@ -146,14 +151,14 @@ conversation updates its existing entry instead of creating duplicates.
   history and this publication disclosure under the `greentea01x` repository.
   Commit authorship records who created this new history; it does not imply sole
   authorship of the copied application contents. Active production configuration
-  and canonical documentation now describe Fly.io only; remaining Vercel text is
-  limited to the explicitly superseded D-31 decision, third-party optional-peer
-  metadata in `pnpm-lock.yaml`, and factual archived research/review/disclosure
-  history. The live public routes are reachable, but authenticated browser smoke,
-  production secrets/CA validation, SMTP delivery, and restore drill remain
-  go-live gates. Production deployment is intentionally manual-only until the
-  repository owner restores a push trigger after its secrets and gates are
-  ready.
+  and the product specification now describe Fly.io only with no retired-provider
+  name. Remaining repository mentions are limited to third-party optional-peer
+  metadata in `pnpm-lock.yaml` and factual archived research/review/disclosure
+  history outside the product spec. The live public routes are reachable, but
+  authenticated browser smoke, production secrets/CA validation, SMTP delivery,
+  and restore drill remain go-live gates. Production deployment is intentionally
+  manual-only until the repository owner restores a push trigger after its
+  secrets and gates are ready.
 
 ## 2026-08-26T14:50:47+07:00 — Deploy diagnosis, demo reset, and final spec
 
