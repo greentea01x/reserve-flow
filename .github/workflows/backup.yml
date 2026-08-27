@@ -1,0 +1,78 @@
+# Supabase free has no backups and no PITR: this workflow IS the backup story.
+#
+# Required repository secrets:
+#   DATABASE_URL_MIGRATE   Supabase Supavisor SESSION pooler URL (:5432, never :6543).
+#                          GitHub runners are IPv4-only and cannot reach the direct
+#                          (IPv6-only) Supabase host.
+#   BACKUP_AGE_PUBLIC_KEY  age recipient public key ("age1..."). Keep the PRIVATE key
+#                          offline (password manager) — restores need it, backups don't.
+#   R2_ACCESS_KEY_ID       Cloudflare R2 API token (Object Read & Write on the bucket).
+#   R2_SECRET_ACCESS_KEY
+#   R2_ENDPOINT            https://<account-id>.r2.cloudflarestorage.com
+#   R2_BUCKET              e.g. reserveflow-backups
+#   HEALTHCHECKS_PING_URL  healthchecks.io check URL for the nightly dump.
+
+name: Backup
+
+on:
+  schedule:
+    - cron: '0 19 * * *' # nightly dump — 02:00 Asia/Bangkok
+    - cron: '0 20 * * 0' # weekly anti-pause ping — Sunday
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  dump:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 19 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install pg_dump 18, age, rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends postgresql-common age rclone
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install --yes --no-install-recommends postgresql-client-18
+
+      - name: Dump and encrypt
+        env:
+          DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+          AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+        run: |
+          stamp="$(date --utc +%Y%m%dT%H%M%SZ)"
+          artifact="reserveflow-${stamp}.dump.age"
+          pg_dump --format=custom --no-owner --dbname="$DATABASE_URL_MIGRATE" \
+            | age --encrypt --recipient "$AGE_PUBLIC_KEY" --output "$artifact"
+          test -s "$artifact"
+          echo "ARTIFACT=$artifact" >> "$GITHUB_ENV"
+
+      - name: Upload to R2
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          rclone copyto "$ARTIFACT" "r2:${R2_BUCKET}/nightly/${ARTIFACT}"
+          # Retention: keep 30 nightly dumps; the R2 free tier is 10 GB.
+          rclone delete --min-age 30d "r2:${R2_BUCKET}/nightly/"
+
+      - name: Heartbeat
+        run: curl --fail --silent --show-error --max-time 10 --retry 3 "${{ secrets.HEALTHCHECKS_PING_URL }}"
+
+      - name: Heartbeat (failure)
+        if: failure()
+        run: curl --silent --show-error --max-time 10 --retry 3 "${{ secrets.HEALTHCHECKS_PING_URL }}/fail"
+
+  # Belt-and-braces against the Supabase free-tier 7-day inactivity pause: the always-on
+  # Fly sweep is the primary DB traffic; this survives a week-long Fly outage.
+  anti-pause-ping:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 20 * * 0'
+    runs-on: ubuntu-latest
+    steps:
+      - name: SELECT 1
+        env:
+          DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+        run: psql "$DATABASE_URL_MIGRATE" --command 'select 1;'

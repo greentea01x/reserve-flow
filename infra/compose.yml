@@ -1,0 +1,46 @@
+name: reserveflow
+
+# Application containers are intentionally absent in W0; the deploy ticket will add them.
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reserveflow}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      RF_OWNER_PASSWORD: ${RF_OWNER_PASSWORD:?RF_OWNER_PASSWORD must be set in .env}
+      RF_APP_PASSWORD: ${RF_APP_PASSWORD:?RF_APP_PASSWORD must be set in .env}
+      TZ: Asia/Bangkok
+      PGTZ: Asia/Bangkok
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      # PostgreSQL 18 stores versioned data below this directory; do not append /data.
+      - postgres_data:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  mailpit:
+    image: axllent/mailpit:v1.30.7
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Bangkok
+      MP_MAX_MESSAGES: '500'
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres_data:

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "//": "ONE Vercel project serves both SPAs from one origin: `/` is the employee bundle and `/admin/` the admin bundle. Splitting them into two projects would give two origins, and the __Host- session cookie cannot span origins — admin would have no session and no sign-in page of its own. Root Directory must stay the repo root.",
+  "buildCommand": "pnpm build:vercel",
+  "outputDirectory": "apps/web/dist",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://reserveflow-api.fly.dev/api/:path*"
+    },
+    { "source": "/admin/:path*", "destination": "/admin/index.html" },
+    { "source": "/:path*", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [{ "key": "x-vercel-enable-rewrite-caching", "value": "0" }]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+# ReserveFlow API — staging. Deploy: flyctl deploy --remote-only --config fly.staging.toml
+# Staging is served entirely by Fly (statics baked into the image); no Vercel project.
+# Runtime secrets as in fly.toml, pointing at the staging Supabase project.
+# Note: with auto_stop enabled the sweep stops while idle, so the staging Supabase project
+# CAN hit the 7-day inactivity pause — resume it from the dashboard when that happens.
+
+app = "reserveflow-staging"
+primary_region = "sin"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  PUBLIC_BASE_URL = "https://reserveflow-staging.fly.dev"
+  TRUST_PROXY = "true"
+  WORKER_ENABLED = "true"
+  LOG_LEVEL = "debug"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # Staging idles to ~$0; a cold start here is irrelevant.
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/api/readyz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

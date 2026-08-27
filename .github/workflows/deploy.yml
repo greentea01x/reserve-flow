@@ -1,0 +1,58 @@
+# Production deploy: migrations -> Fly. The front-end is NOT deployed here — Vercel
+# deploys itself from the git integration (deploy order stays migrate -> Fly -> Vercel,
+# with forward-only / backward-compatible migrations covering the ~1 min of version skew).
+#
+# Required secrets (repository or `production` environment):
+#   FLY_API_TOKEN          fly tokens create deploy --app reserveflow-api
+#   DATABASE_URL_MIGRATE   Supabase Supavisor SESSION pooler URL (:5432, never :6543);
+#                          GitHub runners are IPv4-only.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Still the W0 stub (prints a TODO); becomes real when the Drizzle migration runner
+      # lands in W1. Kept ahead of the Fly deploy so the ordering is already correct.
+      - name: Run migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy API to Fly
+        run: flyctl deploy --remote-only --config fly.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Verify /api/readyz
+        run: >
+          curl --fail --silent --show-error --max-time 10
+          --retry 10 --retry-delay 5 --retry-all-errors
+          https://reserveflow-api.fly.dev/api/readyz

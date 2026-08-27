@@ -1,0 +1,17 @@
+# Context for apps/api/Dockerfile (context root = repo root; used by docker and Fly remote builds).
+.git
+.github
+.turbo
+**/.turbo
+node_modules
+**/node_modules
+**/dist
+docs
+**/*.md
+.env
+.env.*
+coverage
+test-results
+playwright-report
+blob-report
+.DS_Store

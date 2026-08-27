@@ -1,0 +1,35 @@
+# ReserveFlow API — production. Deploy: flyctl deploy --remote-only --config fly.toml
+# Runtime secrets (fly secrets set KEY=value): DATABASE_URL, PUBLIC_BASE_URL,
+# BETTER_AUTH_SECRET, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM, MAIL_REPLY_TO.
+
+app = "reserveflow-api"
+primary_region = "sin"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  TRUST_PROXY = "true"
+  WORKER_ENABLED = "true"
+  LOG_LEVEL = "info"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # The 60 s in-process sweep + outbox drain need a machine that never stops.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/api/readyz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
